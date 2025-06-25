@@ -1,11 +1,12 @@
+// components/SubscriptionForm.tsx (atau di path yang sesuai)
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
-import { Checkbox } from "./ui/checkbox"; // Assuming you have a Checkbox component (ShadCN/UI)
-import { RadioGroup, RadioGroupItem } from "./ui/radio-group"; // For radio buttons
+import { Checkbox } from "./ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import {
   Card,
   CardHeader,
@@ -14,34 +15,37 @@ import {
   CardFooter,
   CardDescription,
 } from "./ui/card";
-import { toast } from "sonner"; // For better feedback than alert()
+import { toast } from "sonner";
+import { createSubscription } from "@/action/subscription"; // Pastikan path ini benar!
+import { Loader2 } from "lucide-react";
 
-// Define MealPlan type for better type safety
+// Definisi MealPlan type untuk type safety
 interface MealPlan {
   name: string;
   price: number;
-  description: string; // Added description for better UI display
-  details: string[]; // Added details for more info
+  description: string;
+  details: string[];
 }
 
+// Data mealPlans diselaraskan dengan nama di seed.ts
 const mealPlans: MealPlan[] = [
   {
-    name: "Diet Plan",
+    name: "Paket Diet Rendah Kalori",
     price: 30000,
-    description: "Ideal for weight management with balanced calories.",
-    details: ["Low calorie", "High fiber", "Balanced macros"],
+    description: "Ideal untuk manajemen berat badan dengan kalori seimbang.",
+    details: ["Rendah kalori", "Tinggi serat", "Makro seimbang"],
   },
   {
-    name: "Protein Plan",
+    name: "Paket Protein Maksimal",
     price: 40000,
-    description: "Boost your muscle growth and recovery.",
-    details: ["High protein", "Lean meats", "Complex carbs"],
+    description: "Meningkatkan pertumbuhan otot dan pemulihan.",
+    details: ["Tinggi protein", "Daging tanpa lemak", "Karbohidrat kompleks"],
   },
   {
-    name: "Royal Plan",
+    name: "Paket Royal Premium",
     price: 60000,
-    description: "Premium ingredients for ultimate nutrition and taste.",
-    details: ["Gourmet meals", "Exotic ingredients", "Chef-curated"],
+    description: "Bahan-bahan premium untuk nutrisi dan rasa terbaik.",
+    details: ["Hidangan gourmet", "Bahan eksotis", "Disiapkan koki"],
   },
 ];
 
@@ -59,31 +63,33 @@ const days = [
 export default function SubscriptionForm() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [plan, setPlan] = useState<string>(mealPlans[0].name); // Initialize with first plan name
+  // Inisialisasi dengan nama paket pertama
+  const [plan, setPlan] = useState<string>(mealPlans[0].name);
   const [selectedMealTypes, setSelectedMealTypes] = useState<string[]>([]);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [allergies, setAllergies] = useState("");
   const [total, setTotal] = useState(0);
+  const [isPending, startTransition] = useTransition(); // Untuk Server Action loading state
 
-  // Error states for required fields
+  // Error states untuk required fields
   const [nameError, setNameError] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const [mealTypeError, setMealTypeError] = useState("");
   const [dayError, setDayError] = useState("");
 
+  // Efek untuk menghitung total harga
   useEffect(() => {
     const selectedPlan = mealPlans.find((p) => p.name === plan);
     const planPrice = selectedPlan ? selectedPlan.price : 0;
 
-    // Calculate total price. Ensure selectedMealTypes.length and selectedDays.length are not 0 to avoid multiplication by zero if no selection
     const price =
       planPrice *
-      (selectedMealTypes.length > 0 ? selectedMealTypes.length : 0) *
-      (selectedDays.length > 0 ? selectedDays.length : 0) *
-      4.3;
+      selectedMealTypes.length * // Number of Meal Types Selected
+      selectedDays.length * // Number of Delivery Days Selected
+      4.3; // Factor as per formula
 
-    // Format the total price to 2 decimal places if it's not an integer, otherwise keep it as integer for better currency representation
-    setTotal(parseFloat(price.toFixed(2))); // Use toFixed for consistent decimal handling
+    // Format harga ke 2 desimal (penting untuk perhitungan yang konsisten)
+    setTotal(parseFloat(price.toFixed(2)));
   }, [plan, selectedMealTypes, selectedDays]);
 
   const handleMealTypeChange = (type: string) => {
@@ -91,7 +97,8 @@ export default function SubscriptionForm() {
       const newSelection = prev.includes(type)
         ? prev.filter((t) => t !== type)
         : [...prev, type];
-      setMealTypeError(newSelection.length === 0 ? "Pilih minimal satu meal type." : "");
+      // Clear error saat ada pilihan
+      setMealTypeError(newSelection.length === 0 ? "Pilih minimal satu tipe makanan." : "");
       return newSelection;
     });
   };
@@ -101,7 +108,8 @@ export default function SubscriptionForm() {
       const newSelection = prev.includes(day)
         ? prev.filter((d) => d !== day)
         : [...prev, day];
-      setDayError(newSelection.length === 0 ? "Pilih minimal satu hari." : "");
+      // Clear error saat ada pilihan
+      setDayError(newSelection.length === 0 ? "Pilih minimal satu hari pengiriman." : "");
       return newSelection;
     });
   };
@@ -109,7 +117,7 @@ export default function SubscriptionForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    let isValid = true;
+    let isValid = true; // Flag validasi
 
     // Reset errors
     setNameError("");
@@ -117,51 +125,62 @@ export default function SubscriptionForm() {
     setMealTypeError("");
     setDayError("");
 
+    // Validasi Name
     if (!name.trim()) {
       setNameError("Nama lengkap diperlukan.");
       isValid = false;
     }
+    // Validasi Phone Number
     if (!phone.trim()) {
       setPhoneError("Nomor telepon aktif diperlukan.");
       isValid = false;
-    } else if (!/^\d+$/.test(phone.trim())) { // Basic phone number validation (digits only)
-        setPhoneError("Nomor telepon harus berupa angka.");
-        isValid = false;
-    }
-    if (selectedMealTypes.length === 0) {
-      setMealTypeError("Pilih minimal satu meal type.");
+    } else if (!/^\d+$/.test(phone.trim())) {
+      setPhoneError("Nomor telepon harus berupa angka.");
       isValid = false;
     }
+    // Validasi Meal Type
+    if (selectedMealTypes.length === 0) {
+      setMealTypeError("Pilih minimal satu tipe makanan.");
+      isValid = false;
+    }
+    // Validasi Delivery Day
     if (selectedDays.length === 0) {
       setDayError("Pilih minimal satu hari pengiriman.");
       isValid = false;
     }
 
     if (!isValid) {
-      toast.error("Mohon lengkapi semua bidang yang diperlukan.");
+      toast.error("Mohon lengkapi semua bidang yang diperlukan dengan benar.");
       return;
     }
 
-    // TODO: Submit to backend
-    // For now, simulate submission
-    console.log({
-      name,
-      phone,
-      plan,
-      selectedMealTypes,
-      selectedDays,
-      allergies,
-      total,
+    // Panggil Server Action
+    startTransition(async () => {
+      const result = await createSubscription({
+        fullName: name,
+        phone: phone,
+        planName: plan,
+        mealTypeNames: selectedMealTypes,
+        deliveryDayNames: selectedDays,
+        allergies: allergies.trim() === "" ? undefined : allergies, // Kirim undefined jika kosong
+        totalPrice: total,
+      });
+
+      if (result.success) {
+        toast.success(result.message);
+        // Reset form setelah sukses
+        setName('');
+        setPhone('');
+        setPlan(mealPlans[0].name); // Kembali ke plan default
+        setSelectedMealTypes([]);
+        setSelectedDays([]);
+        setAllergies('');
+        setTotal(0);
+        // Opsional: Redirect atau tampilkan pesan sukses yang lebih besar
+      } else {
+        toast.error(result.message || "Terjadi kesalahan. Silakan coba lagi.");
+      }
     });
-    toast.success("Langganan Anda telah berhasil diajukan!");
-    // You might want to reset the form here
-    setName('');
-    setPhone('');
-    setPlan(mealPlans[0].name);
-    setSelectedMealTypes([]);
-    setSelectedDays([]);
-    setAllergies('');
-    setTotal(0);
   };
 
   return (
@@ -188,6 +207,7 @@ export default function SubscriptionForm() {
                   }}
                   placeholder="Nama lengkap Anda"
                   className={`mt-1 ${nameError ? "border-red-500" : ""}`}
+                  disabled={isPending}
                 />
                 {nameError && <p className="text-red-500 text-sm mt-1">{nameError}</p>}
               </div>
@@ -203,6 +223,7 @@ export default function SubscriptionForm() {
                   placeholder="Contoh: 081234567890"
                   type="tel"
                   className={`mt-1 ${phoneError ? "border-red-500" : ""}`}
+                  disabled={isPending}
                 />
                 {phoneError && <p className="text-red-500 text-sm mt-1">{phoneError}</p>}
               </div>
@@ -249,6 +270,7 @@ export default function SubscriptionForm() {
                       checked={selectedMealTypes.includes(type)}
                       onCheckedChange={() => handleMealTypeChange(type)}
                       className="peer h-5 w-5 border-gray-300 data-[state=checked]:bg-blue-500 data-[state=checked]:text-white"
+                      disabled={isPending}
                     />
                     <Label
                       htmlFor={`meal-type-${type}`}
@@ -273,6 +295,7 @@ export default function SubscriptionForm() {
                       checked={selectedDays.includes(day)}
                       onCheckedChange={() => handleDayChange(day)}
                       className="peer h-5 w-5 border-gray-300 data-[state=checked]:bg-blue-500 data-[state=checked]:text-white"
+                      disabled={isPending}
                     />
                     <Label
                       htmlFor={`day-${day}`}
@@ -295,6 +318,7 @@ export default function SubscriptionForm() {
                 onChange={(e) => setAllergies(e.target.value)}
                 placeholder="Contoh: kacang, gluten, vegan"
                 className="mt-1"
+                disabled={isPending}
               />
             </div>
 
@@ -311,8 +335,15 @@ export default function SubscriptionForm() {
             <Button
               type="submit"
               className="w-full py-3 text-lg font-semibold bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
+              disabled={isPending}
             >
-              Langganan Sekarang
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Mengirim...
+                </>
+              ) : (
+                "Langganan Sekarang"
+              )}
             </Button>
           </CardFooter>
         </form>

@@ -8,7 +8,7 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
-import { loginAction, signUpAction } from "@/action/user";
+import { loginAction, signUpAction } from "@/action/user"; 
 import { userSchema } from "@/schema/userSchema";
 
 type Props = {
@@ -27,37 +27,37 @@ const AuthForm = ({ type }: Props) => {
       const password = FormData.get("password") as string;
 
       if (isLoginForm) {
-        // Validasi sederhana untuk login - hanya cek password tidak kosong
         if (!password) {
           toast.error("Password tidak boleh kosong");
           return;
         }
 
-        // Email validation akan ditangani oleh Supabase
-        const errorMessage = (await loginAction(email, password)).errorMessage;
+        const { errorMessage } = await loginAction(email, password); 
 
         if (!errorMessage) {
-          toast.success("You have successfully logged in.");
+          toast.success("Anda berhasil masuk.");
           router.replace("/");
         } else {
-          toast.error("Email atau password salah");
+          toast.error("Email atau password salah.");
         }
       } else {
-        // Validasi ketat untuk signup menggunakan userSchema
         const result = userSchema.safeParse({ fullName, email, password });
         if (!result.success) {
           toast.error(result.error.errors[0].message);
           return;
         }
 
-        const errorMessage = (await signUpAction(email, password, fullName))
-          .errorMessage;
+        const { errorMessage, requiresEmailConfirmation } = await signUpAction(email, password, fullName);
 
         if (!errorMessage) {
-          toast.success("You have successfully signed up.");
-          router.replace("/");
+          if (requiresEmailConfirmation) {
+            toast.success("Akun berhasil dibuat! Silakan cek email Anda untuk konfirmasi.");
+          } else {
+            toast.success("Anda berhasil mendaftar.");
+            router.replace("/");
+          }
         } else {
-          toast.error("An error occurred while signing up.");
+          toast.error(errorMessage || "Terjadi kesalahan saat mendaftar."); 
         }
       }
     });
@@ -68,11 +68,11 @@ const AuthForm = ({ type }: Props) => {
       <CardContent className="grid w-full items-center gap-4">
         {!isLoginForm && (
           <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="fullName">Full Name</Label>
+            <Label htmlFor="fullName">Nama Lengkap</Label>
             <Input
               id="fullName"
               name="fullName"
-              placeholder="Enter your full name"
+              placeholder="Masukkan nama lengkap Anda"
               type="text"
               required
               disabled={isPending}
@@ -84,7 +84,7 @@ const AuthForm = ({ type }: Props) => {
           <Input
             id="email"
             name="email"
-            placeholder="Enter your email"
+            placeholder="Masukkan email Anda"
             type="email"
             required
             disabled={isPending}
@@ -97,31 +97,32 @@ const AuthForm = ({ type }: Props) => {
             name="password"
             placeholder={
               isLoginForm
-                ? "Enter your password"
-                : "Min 8 chars, include: A-Z, a-z, 0-9, symbol"
+                ? "Masukkan password Anda"
+                : "Min 8 karakter, harus mengandung: A-Z, a-z, 0-9, simbol"
             }
             type="password"
             disabled={isPending}
+            required={!isLoginForm} 
           />
         </div>
       </CardContent>
       <CardFooter className="mt-4 flex flex-col gap-6">
-        <Button className="w-full">
+        <Button className="w-full" disabled={isPending}>
           {isPending ? (
             <Loader2 className="animate-spin" />
           ) : isLoginForm ? (
             "Login"
           ) : (
-            "Sign Up"
+            "Daftar"
           )}
         </Button>
         <p className="text-xs">
-          {isLoginForm ? "Don't have an account?" : "Already have an account?"}{" "}
+          {isLoginForm ? "Belum punya akun?" : "Sudah punya akun?"}{" "}
           <Link
             href={isLoginForm ? "/sign-up" : "/login"}
             className={`text-blue-500 ${isPending ? "pointer-events-none opacity-50" : ""}`}
           >
-            {isLoginForm ? "Sign Up" : "Login"}
+            {isLoginForm ? "Daftar" : "Login"}
           </Link>
         </p>
       </CardFooter>

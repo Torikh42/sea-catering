@@ -24,30 +24,46 @@ export const signUpAction = async (
 ) => {
   try {
     const { auth } = await createClient();
+
+    // Pastikan URL ini sudah benar dan terdaftar di dashboard Supabase
+    const emailRedirectTo = process.env.NEXT_PUBLIC_SUPABASE_CONFIRM_URL || `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm`;
+
     const { data, error } = await auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: emailRedirectTo,
+      },
     });
-    if (error) throw error;
+
+    if (error) {
+      console.error("Supabase signUp error:", error.message);
+      return { errorMessage: error.message, requiresEmailConfirmation: false }; 
+    }
 
     const userId = data.user?.id;
     if (!userId) {
+      console.error("Supabase signUp successful but user ID is missing.");
+      return { errorMessage: "Terjadi kesalahan saat mendaftar: ID pengguna hilang.", requiresEmailConfirmation: false };
     }
-
-    // add user to database
     await prisma.user.create({
       data: {
         id: userId,
         email,
         fullName,
+
       },
     });
 
-    return { errorMessage: null };
+    const requiresEmailConfirmation = !data.session; 
+
+    return { errorMessage: null, requiresEmailConfirmation }; 
   } catch (error) {
-    return handleError(error);
+    const handledError = handleError(error);
+    return { errorMessage: handledError.errorMessage, requiresEmailConfirmation: false };
   }
 };
+
 
 export const logoutAction = async () => {
   try {
