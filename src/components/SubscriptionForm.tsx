@@ -1,9 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
+import { Textarea } from "./ui/textarea"; // Untuk pesan review yang lebih panjang
+import { toast } from "sonner"; // Untuk notifikasi yang lebih baik
+import { Star } from "lucide-react"; // Ikon bintang
 import {
   Card,
   CardHeader,
@@ -11,172 +14,132 @@ import {
   CardContent,
   CardFooter,
   CardDescription,
-} from "./ui/card";
+} from "./ui/card"; // Gunakan Card untuk form
 
-const mealPlans = [
-  { name: "Diet Plan", price: 30000 },
-  { name: "Protein Plan", price: 40000 },
-  { name: "Royal Plan", price: 60000 },
-];
+import { createTestimonial } from "@/action/testimonial"; // Sesuaikan path jika berbeda
 
-const mealTypes = ["Breakfast", "Lunch", "Dinner"];
-const days = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-];
-
-export default function SubscriptionForm() {
+export default function TestimonialForm() {
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [plan, setPlan] = useState(mealPlans[0].name);
-  const [selectedMealTypes, setSelectedMealTypes] = useState<string[]>([]);
-  const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const [allergies, setAllergies] = useState("");
-  const [total, setTotal] = useState(0);
+  const [message, setMessage] = useState("");
+  const [rating, setRating] = useState(0); // Mulai dari 0, pengguna memilih
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    const planPrice = mealPlans.find((p) => p.name === plan)?.price || 0;
-    const price =
-      planPrice *
-      (selectedMealTypes.length || 0) *
-      (selectedDays.length || 0) *
-      4.3;
-    setTotal(isNaN(price) ? 0 : price);
-  }, [plan, selectedMealTypes, selectedDays]);
+  // Error states
+  const [nameError, setNameError] = useState("");
+  const [messageError, setMessageError] = useState("");
+  const [ratingError, setRatingError] = useState("");
 
-  const handleMealTypeChange = (type: string) => {
-    setSelectedMealTypes((prev) =>
-      prev.includes(type)
-        ? prev.filter((t) => t !== type)
-        : [...prev, type]
-    );
-  };
-
-  const handleDayChange = (day: string) => {
-    setSelectedDays((prev) =>
-      prev.includes(day)
-        ? prev.filter((d) => d !== day)
-        : [...prev, day]
-    );
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !phone || selectedMealTypes.length === 0 || selectedDays.length === 0) {
-      alert("Please fill all required fields.");
+    setIsSubmitting(true);
+
+    // Reset errors
+    setNameError("");
+    setMessageError("");
+    setRatingError("");
+
+    let isValid = true;
+    if (!name.trim()) {
+      setNameError("Nama pelanggan tidak boleh kosong.");
+      isValid = false;
+    }
+    if (!message.trim()) {
+      setMessageError("Pesan ulasan tidak boleh kosong.");
+      isValid = false;
+    }
+    if (rating < 1 || rating > 5) {
+      setRatingError("Mohon berikan rating bintang (1-5).");
+      isValid = false;
+    }
+
+    if (!isValid) {
+      toast.error("Mohon lengkapi semua bidang yang diperlukan.");
+      setIsSubmitting(false);
       return;
     }
-    // TODO: Submit to backend
-    alert("Subscription submitted!");
+
+    try {
+      const result = await createTestimonial({ name, message, rating });
+      if (result.success) {
+        toast.success(result.message);
+        setName("");
+        setMessage("");
+        setRating(0); // Reset rating
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      console.error("Client-side error submitting testimonial:", error);
+      toast.error("Terjadi kesalahan saat mengirim testimonial.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <Card className="max-w-lg mx-auto">
+    <Card className="w-full max-w-lg mx-auto shadow-lg border-t-4 border-green-500 rounded-lg">
       <form onSubmit={handleSubmit}>
-        <CardHeader>
-          <CardTitle>Form Subscription</CardTitle>
-          <CardDescription>
-            Isi data di bawah untuk berlangganan meal plan SEA Catering.
+        <CardHeader className="text-center pb-4">
+          <CardTitle className="text-2xl font-bold text-green-700">Berikan Testimonial Anda</CardTitle>
+          <CardDescription className="text-md text-gray-600 mt-2">
+            Bagikan pengalaman Anda bersama SEA Catering!
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 p-6">
           <div>
-            <Label htmlFor="name">*Name</Label>
+            <Label htmlFor="name" className="font-semibold">Nama Pelanggan <span className="text-red-500">*</span></Label>
             <Input
               id="name"
-              required
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Nama lengkap"
+              onChange={(e) => {
+                setName(e.target.value);
+                setNameError("");
+              }}
+              placeholder="Nama Anda"
+              className={`mt-1 ${nameError ? "border-red-500" : ""}`}
             />
+            {nameError && <p className="text-red-500 text-sm mt-1">{nameError}</p>}
           </div>
           <div>
-            <Label htmlFor="phone">*Active Phone Number</Label>
-            <Input
-              id="phone"
-              required
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="08xxxxxxxxxx"
-              type="tel"
+            <Label htmlFor="message" className="font-semibold">Pesan Ulasan <span className="text-red-500">*</span></Label>
+            <Textarea // Menggunakan Textarea untuk multi-baris input
+              id="message"
+              value={message}
+              onChange={(e) => {
+                setMessage(e.target.value);
+                setMessageError("");
+              }}
+              placeholder="Tulis ulasan Anda di sini..."
+              rows={4} // Menentukan tinggi default
+              className={`mt-1 ${messageError ? "border-red-500" : ""}`}
             />
+            {messageError && <p className="text-red-500 text-sm mt-1">{messageError}</p>}
           </div>
           <div>
-            <Label htmlFor="plan">*Plan Selection</Label>
-            <select
-              id="plan"
-              className="w-full border rounded-md px-3 py-2 mt-1"
-              value={plan}
-              onChange={(e) => setPlan(e.target.value)}
-              required
-            >
-              {mealPlans.map((p) => (
-                <option key={p.name} value={p.name}>
-                  {p.name} – Rp{p.price.toLocaleString("id-ID")}/meal
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <Label>*Meal Type</Label>
-            <div className="flex gap-4 flex-wrap mt-1">
-              {mealTypes.map((type) => (
-                <label key={type} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedMealTypes.includes(type)}
-                    onChange={() => handleMealTypeChange(type)}
-                  />
-                  {type}
-                </label>
+            <Label className="font-semibold">Rating Bintang <span className="text-red-500">*</span></Label>
+            <div className="flex items-center gap-1 mt-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  className={`h-7 w-7 cursor-pointer transition-colors duration-200 ${
+                    star <= rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+                  }`}
+                  onClick={() => {
+                    setRating(star);
+                    setRatingError("");
+                  }}
+                />
               ))}
             </div>
-            {selectedMealTypes.length === 0 && (
-              <div className="text-xs text-red-500 mt-1">Pilih minimal satu meal type.</div>
-            )}
-          </div>
-          <div>
-            <Label>*Delivery Days</Label>
-            <div className="flex gap-2 flex-wrap mt-1">
-              {days.map((day) => (
-                <label key={day} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedDays.includes(day)}
-                    onChange={() => handleDayChange(day)}
-                  />
-                  {day}
-                </label>
-              ))}
-            </div>
-            {selectedDays.length === 0 && (
-              <div className="text-xs text-red-500 mt-1">Pilih minimal satu hari.</div>
-            )}
-          </div>
-          <div>
-            <Label htmlFor="allergies">Allergies</Label>
-            <Input
-              id="allergies"
-              value={allergies}
-              onChange={(e) => setAllergies(e.target.value)}
-              placeholder="Tulis jika ada alergi"
-            />
-          </div>
-          <div className="font-semibold text-green-700">
-            Total Price: <span className="text-blue-600">Rp{total.toLocaleString("id-ID")}</span>
+            {ratingError && <p className="text-red-500 text-sm mt-1">{ratingError}</p>}
           </div>
         </CardContent>
-        <CardFooter>
-          <Button type="submit" className="w-full">
-            Subscribe
+        <CardFooter className="pt-4">
+          <Button type="submit" className="w-full py-2" disabled={isSubmitting}>
+            {isSubmitting ? "Mengirim..." : "Kirim Testimonial"}
           </Button>
         </CardFooter>
       </form>
-        </Card>
-      );
-    }
+    </Card>
+  );
+}

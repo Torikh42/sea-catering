@@ -1,81 +1,141 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import { Button } from "./ui/button";
 import Link from "next/link";
 import Image from "next/image";
-import { getUser } from "@/auth/server";
+import { usePathname } from "next/navigation";
+import { Menu, X } from "lucide-react";
 import LogOutButton from "./LogOutButton";
 
-const Header = async () => {
-  const user = await getUser();
+const navItems = [
+  { href: "/", label: "Home" },
+  { href: "/menu", label: "Menu" },
+  { href: "/subscription", label: "Subscription" },
+  { href: "/contact", label: "Contact Us" },
+];
+
+type User = {
+  id?: string;
+  email?: string;
+  name?: string;
+} | null;
+
+export default function Header({ user }: { user?: User }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname(); // Gunakan usePathname() dari Next.js
+
+  const isActive = (href: string) => {
+    if (href === "/") return pathname === "/";
+    return pathname.startsWith(href);
+  };
+
   return (
-    <header className="flex flex-col items-start justify-between gap-2 border-b border-gray-100 bg-white px-4 py-3 shadow-lg sm:flex-row sm:items-center sm:gap-0 sm:px-6">
-      <Link className="flex items-center gap-3" href="/">
-        <Image src="/image.png" height={50} width={50} alt="logo" priority />
-        <div>
-          <h1 className="text-xl leading-tight font-bold text-green-500 sm:text-2xl">
-            SEA <span className="text-blue-400">CATERING</span>
-          </h1>
-          <span className="text-xs text-gray-500">Sea Catering Solutions</span>
+    <header className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-lg">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
+        <Link className="flex items-center gap-3" href="/">
+          <Image src="/image-sea.png" height={40} width={40} alt="logo" priority />
+          <div className="hidden sm:block">
+            <h1 className="text-lg font-bold text-green-500 lg:text-xl">
+              SEA <span className="text-blue-400">CATERING</span>
+            </h1>
+            <span className="text-xs text-gray-500">Sea Catering Solutions</span>
+          </div>
+        </Link>
+
+        <nav className="hidden md:flex items-center gap-2">
+          {navItems.map((item) => (
+            <Button
+              asChild
+              key={item.href}
+              variant={isActive(item.href) ? "default" : "ghost"}
+              className={`transition-all duration-200 ${
+                isActive(item.href)
+                  ? "bg-blue-500 text-white hover:bg-blue-600"
+                  : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+              }`}
+            >
+              <Link href={item.href}>{item.label}</Link>
+            </Button>
+          ))}
+        </nav>
+
+        <div className="hidden md:flex items-center gap-2">
+          {user ? (
+            <LogOutButton />
+          ) : (
+            <>
+              <Button asChild variant="outline" className="border-blue-200 text-blue-600 hover:bg-blue-50">
+                <Link href="/sign-up">Sign Up</Link>
+              </Button>
+              <Button asChild className="bg-blue-500 hover:bg-blue-600">
+                <Link href="/login">Login</Link>
+              </Button>
+            </>
+          )}
         </div>
-      </Link>
-      <nav className="flex w-full flex-wrap gap-2 sm:w-auto sm:gap-4">
-        <Link href="/">
+
+        {/* Mobile menu button */}
+        <div className="md:hidden">
           <Button
-            variant="outline"
-            className="w-full hover:bg-blue-100 sm:w-auto"
+            variant="ghost"
+            size="sm"
+            onClick={() => setMobileOpen((v) => !v)}
+            className="p-2"
+            aria-label="Toggle menu"
           >
-            Home
+            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </Button>
-        </Link>
-        <Link href="/menu">
-          <Button
-            variant="outline"
-            className="w-full hover:bg-blue-100 sm:w-auto"
-          >
-            Menu
-          </Button>
-        </Link>
-        <Link href="/subscription">
-          <Button
-            variant="outline"
-            className="w-full hover:bg-blue-100 sm:w-auto"
-          >
-            Subscription
-          </Button>
-        </Link>
-        <Link href="/contact">
-          <Button
-            variant="outline"
-            className="w-full hover:bg-blue-100 sm:w-auto"
-          >
-            Contact Us
-          </Button>
-        </Link>
-        {user ? (
-          <LogOutButton />
-        ) : (
-          <>
-            <Link href="/sign-up">
+        </div>
+      </div>
+
+      {/* Mobile Navigation */}
+      {mobileOpen && (
+        <div className="md:hidden bg-white border-t border-gray-100 shadow-lg">
+          <nav className="flex flex-col gap-1 px-4 py-3">
+            {navItems.map((item) => (
               <Button
-                variant="outline"
-                className="w-full hover:bg-blue-100 sm:w-auto"
+                asChild
+                key={item.href}
+                variant={isActive(item.href) ? "default" : "ghost"}
+                className={`w-full justify-start transition-all duration-200 ${
+                  isActive(item.href)
+                    ? "bg-blue-500 text-white"
+                    : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                }`}
+                onClick={() => setMobileOpen(false)}
               >
-                Sign Up
+                <Link href={item.href}>{item.label}</Link>
               </Button>
-            </Link>
-            <Link href="/login">
-              <Button
-                variant="outline"
-                className="w-full hover:bg-blue-100 sm:w-auto"
-              >
-                Login
-              </Button>
-            </Link>
-          </>
-        )}
-      </nav>
+            ))}
+            <div className="pt-2 border-t border-gray-200 flex flex-col gap-2">
+              {user ? (
+                <div onClick={() => setMobileOpen(false)}>
+                  <LogOutButton />
+                </div>
+              ) : (
+                <>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="w-full border-blue-200 text-blue-600 hover:bg-blue-50"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <Link href="/sign-up">Sign Up</Link>
+                  </Button>
+                  <Button
+                    asChild
+                    className="w-full bg-blue-500 hover:bg-blue-600"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <Link href="/login">Login</Link>
+                  </Button>
+                </>
+              )}
+            </div>
+          </nav>
+        </div>
+      )}
     </header>
   );
-};
-
-export default Header;
+}
