@@ -17,13 +17,16 @@ export const loginAction = async (email: string, password: string) => {
   }
 };
 
-export const signUpAction = async (email: string, password: string, fullName: string) => {
+export const signUpAction = async (
+  email: string,
+  password: string,
+  fullName: string,
+) => {
   try {
     const { auth } = await createClient();
     const { data, error } = await auth.signUp({
       email,
       password,
-      
     });
     if (error) throw error;
 
@@ -32,14 +35,13 @@ export const signUpAction = async (email: string, password: string, fullName: st
     }
 
     // add user to database
-await prisma.user.create({
-  data: {
-    id: userId,
-    email,
-    fullName: fullName, 
-    password,
-  },
-});
+    await prisma.user.create({
+      data: {
+        id: userId,
+        email,
+        fullName,
+      },
+    });
 
     return { errorMessage: null };
   } catch (error) {

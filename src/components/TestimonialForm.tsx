@@ -5,6 +5,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { createTestimonial } from "@/action/testimonial";
+import { toast } from "sonner";
 
 export default function TestimonialForm() {
   const [name, setName] = useState("");
@@ -20,9 +21,9 @@ export default function TestimonialForm() {
       setName("");
       setMessage("");
       setRating(5);
-      alert("Testimonial submitted!");
+      toast.success("Testimonial submitted!");
     } catch {
-      alert("Failed to submit testimonial.");
+      toast.error("Failed to submit testimonial.");
     }
     setLoading(false);
   };

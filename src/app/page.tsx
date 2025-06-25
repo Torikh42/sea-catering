@@ -1,9 +1,9 @@
+"use client"
 import { LihatMenuButton } from "@/components/LihatMenuButton";
 import React from "react";
 import Image from "next/image";
 import TestimonialForm from "@/components/TestimonialForm"; // Import the form
 import TestimonialCarousel from "@/components/TestimonialCarousel"; // Import the carousel
-import Link from "next/link"; // For the new button below LihatMenuButton
 import { Button } from "@/components/ui/button"; // For the new button
 
 const features = [
@@ -15,6 +15,13 @@ const features = [
 ];
 
 export default function Homepage() {
+  const scrollToTestimonialForm = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const formSection = document.getElementById("give-testimonial");
+    if (formSection) {
+      formSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
   return (
     <main className="flex min-h-[calc(100vh-64px)] flex-col items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
       {/* Hero Section */}
@@ -35,14 +42,18 @@ export default function Homepage() {
             cepat.
           </p>
           <div className="mt-4 flex flex-col gap-4 sm:flex-row">
-            {" "}
-            {/* Container for buttons */}
             <LihatMenuButton />
             <Button
-              asChild
-              className="rounded-md bg-blue-600 px-4 py-2 font-semibold text-white shadow-md transition-colors duration-200 hover:bg-blue-700"
+              type="button"
+              onClick={scrollToTestimonialForm}
+              variant="secondary"
+              size="lg"
+              className="group relative overflow-hidden rounded-2xl border-2 border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-8 py-6 font-semibold text-emerald-700 shadow-lg transition-all duration-300 hover:scale-105 hover:border-emerald-300 hover:from-emerald-100 hover:to-teal-100 hover:text-emerald-800 hover:shadow-xl"
             >
-              <Link href="#give-testimonial">Berikan Testimonial</Link>
+              <div className="flex items-center gap-3">
+                <span className="text-lg">Berikan Testimonial</span>
+              </div>
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-emerald-100/50 to-teal-100/50 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             </Button>
           </div>
         </div>
@@ -111,8 +122,6 @@ export default function Homepage() {
 
       {/* Testimonial Carousel Section */}
       <section id="testimonials-carousel" className="w-full py-16">
-        {" "}
-        {/* Removed max-w-7xl for full width carousel look */}
         <TestimonialCarousel />
       </section>
     </main>

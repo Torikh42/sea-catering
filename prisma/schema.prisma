@@ -13,35 +13,77 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  user
+  admin
+}
+
+enum SubscriptionStatus {
+  active
+  paused
+  cancelled
+}
+
 model User {
-  id        String   @id @default(uuid())
-  fullName  String
-  email     String   @unique
-  password  String   // hashed
-  role      String   @default("user") // "user" or "admin"
-  createdAt DateTime @default(now())
+  id            String         @id @default(uuid())
+  fullName      String
+  email         String         @unique
+  role          Role           @default(user)
+  createdAt     DateTime       @default(now())
   subscriptions Subscription[]
 }
 
 model Subscription {
-  id           String   @id @default(uuid())
-  user         User     @relation(fields: [userId], references: [id])
-  userId       String
-  plan         String
-  mealTypes    String   // comma separated or use a relation table
-  deliveryDays String   // comma separated or use a relation table
-  allergies    String?
-  phone        String
-  totalPrice   Int
-  createdAt    DateTime @default(now())
+  id               String                     @id @default(uuid())
+  user             User                       @relation(fields: [userId], references: [id])
+  userId           String
+  mealPlan         MealPlan                   @relation(fields: [mealPlanId], references: [id])
+  mealPlanId       String
+  phone            String
+  allergies        String?
+  totalPrice       Decimal                    @db.Decimal(10, 2)
+  status           SubscriptionStatus         @default(active)
+  createdAt        DateTime                   @default(now())
+  updatedAt        DateTime                   @updatedAt
+  mealTypes        SubscriptionMealType[]
+  deliveryDays     SubscriptionDeliveryDay[]
 }
 
 model MealPlan {
-  id          String   @id @default(uuid())
+  id          String         @id @default(uuid())
   name        String
   price       Int
   description String
   imageUrl    String?
+  subscriptions Subscription[]
+}
+
+model MealType {
+  id          String                 @id @default(uuid())
+  name        String                 @unique
+  subscriptions SubscriptionMealType[]
+}
+
+model DeliveryDay {
+  id          String                    @id @default(uuid())
+  name        String                    @unique
+  subscriptions SubscriptionDeliveryDay[]
+}
+
+model SubscriptionMealType {
+  id             String        @id @default(uuid())
+  subscription   Subscription  @relation(fields: [subscriptionId], references: [id])
+  subscriptionId String
+  mealType       MealType      @relation(fields: [mealTypeId], references: [id])
+  mealTypeId     String
+}
+
+model SubscriptionDeliveryDay {
+  id             String        @id @default(uuid())
+  subscription   Subscription  @relation(fields: [subscriptionId], references: [id])
+  subscriptionId String
+  deliveryDay    DeliveryDay   @relation(fields: [deliveryDayId], references: [id])
+  deliveryDayId  String
 }
 
 model Testimonial {

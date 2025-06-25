@@ -1,9 +1,6 @@
 "use server";
-import { PrismaClient } from '@prisma/client'; // Pastikan import PrismaClient
-// Atau jika Anda memiliki instance prisma yang diekspor dari tempat lain:
-// import { prisma } from "../../prisma/prisma"; // Adjust path if necessary
+import { prisma } from "../../prisma/prisma"; // Adjust path if necessary
 
-const prisma = new PrismaClient(); // Inisialisasi PrismaClient jika belum
 
 interface CreateTestimonialInput {
   name: string;
