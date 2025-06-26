@@ -18,8 +18,8 @@ export async function updateSession(request: NextRequest) {
   });
 
   const supabase = createServerClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
@@ -56,7 +56,8 @@ export async function updateSession(request: NextRequest) {
   }
 
   // (Opsional) Jika user belum login dan akses halaman lain, redirect ke /login
-  if (!isAuthRoute && !user) {
+  if (!isAuthRoute && !user && request.nextUrl.pathname !== "/subscribe") {
+    // Tambahkan kondisi untuk halaman subscribe agar bisa diakses tanpa login
     return NextResponse.redirect(
       new URL("/login", process.env.NEXT_PUBLIC_BASE_URL),
     );

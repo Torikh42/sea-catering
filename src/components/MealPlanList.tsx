@@ -30,7 +30,7 @@ export default function MealPlanList({ plans }: { plans: MealPlan[] }) {
           <div className="absolute -right-8 -bottom-8 h-40 w-40 animate-pulse rounded-full bg-gradient-to-r from-yellow-400 to-green-400 opacity-10 blur-2xl delay-1000"></div>
 
           {/* Cards Grid */}
-          <div className="relative z-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="relative z-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
             {plans.map((plan, index) => (
               <div
                 key={plan.id}

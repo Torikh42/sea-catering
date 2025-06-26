@@ -1,10 +1,11 @@
-"use client"
+"use client";
 import { LihatMenuButton } from "@/components/LihatMenuButton";
 import React from "react";
 import Image from "next/image";
-import TestimonialForm from "@/components/TestimonialForm"; // Import the form
-import TestimonialCarousel from "@/components/TestimonialCarousel"; // Import the carousel
-import { Button } from "@/components/ui/button"; // For the new button
+import Link from "next/link"; // Import Link component
+import TestimonialForm from "@/components/TestimonialForm";
+import TestimonialCarousel from "@/components/TestimonialCarousel";
+import { Button } from "@/components/ui/button";
 
 const features = [
   "Kustomisasi menu sesuai kebutuhan Anda",
@@ -88,7 +89,7 @@ export default function Homepage() {
         </ul>
       </section>
 
-      {/* Contact Section */}
+      {/* Contact Section - PERBAIKAN DI SINI */}
       <section className="mb-12 flex w-full max-w-7xl flex-col items-center rounded-xl bg-blue-700 px-4 py-12 text-center text-white shadow-lg">
         <h2 className="mb-4 text-3xl font-bold">
           Siap untuk Hidup Lebih Sehat?
@@ -97,19 +98,27 @@ export default function Homepage() {
           Hubungi kami sekarang untuk memulai perjalanan makan sehat Anda. Tim
           kami siap membantu Anda menyesuaikan menu terbaik!
         </p>
-        <div className="mx-auto mt-4 w-full max-w-sm rounded-lg bg-blue-800 p-6 shadow-xl">
-          <div className="mb-2 text-2xl font-bold text-white">Hubungi Kami</div>
-          <div className="mt-1 text-lg text-blue-200">Manager: Brian</div>
-          <div className="text-lg text-blue-200">
-            Telp:{" "}
-            <a
-              href="tel:08123456789"
-              className="font-semibold text-white hover:underline"
-            >
-              08123456789
-            </a>
+
+        {/* Wrap the contact info div with the Link component */}
+        <Link
+          href="/contact"
+          className="group block w-full max-w-sm transition-transform duration-300 hover:scale-105"
+        >
+          <div className="mx-auto mt-4 w-full max-w-sm rounded-lg bg-blue-800 p-6 shadow-xl transition-shadow duration-300 group-hover:shadow-2xl">
+            <div className="mb-2 text-2xl font-bold text-white">
+              Hubungi Kami
+            </div>
+            <div className="mt-1 text-lg text-blue-200">Manager: Brian</div>
+            <div className="text-lg text-blue-200">
+              Telp:{" "}
+              <span className="font-semibold text-white">08123456789</span>
+            </div>
+            {/* Tambahkan indikator visual */}
+            <span className="mt-4 inline-block text-sm font-semibold text-white/90 group-hover:underline">
+              Klik untuk detail & lokasi &rarr;
+            </span>
           </div>
-        </div>
+        </Link>
       </section>
 
       {/* Testimonial Form Section */}

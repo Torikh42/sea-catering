@@ -1,3 +1,4 @@
+"use server"
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
@@ -5,8 +6,8 @@ export async function createClient() {
   const cookieStore = await cookies();
 
   const client = createServerClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
@@ -27,14 +28,13 @@ export async function createClient() {
 }
 
 export async function getUser() {
-    const {auth} = await createClient();
+  const { auth } = await createClient();
 
-    const userObject = await auth.getUser()
+  const userObject = await auth.getUser();
 
-    if (userObject.error) {
-        console.error(userObject.error);
-        return null;
-    }
-    return userObject.data.user;
-
+  if (userObject.error) {
+    console.error(userObject.error);
+    return null;
+  }
+  return userObject.data.user;
 }

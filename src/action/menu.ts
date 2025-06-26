@@ -1,6 +1,6 @@
 "use server";
 import { mealPlanSchema } from "@/schema/mealPlanSchema";
-import { prisma } from "../../prisma/prisma";
+import prisma from "../../prisma/prisma";
 
 export const getAllMealPlans = async () => {
   const mealPlans = await prisma.mealPlan.findMany({

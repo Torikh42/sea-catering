@@ -22,6 +22,7 @@ enum SubscriptionStatus {
   active
   paused
   cancelled
+  completed 
 }
 
 model User {
@@ -31,23 +32,34 @@ model User {
   role          Role           @default(user)
   createdAt     DateTime       @default(now())
   subscriptions Subscription[]
+  password      String?      
 }
 
 model Subscription {
-  id                 String                  @id @default(uuid())
-  user               User                    @relation(fields: [userId], references: [id])
-  userId             String
-  fullName           String 
-  mealPlan           MealPlan                @relation(fields: [mealPlanId], references: [id])
-  mealPlanId         String
-  phone              String
-  allergies          String?
-  totalPrice         Decimal                 @db.Decimal(10, 2)
-  status             SubscriptionStatus      @default(active)
-  createdAt          DateTime                @default(now())
-  updatedAt          DateTime                @updatedAt
-  mealTypes          SubscriptionMealType[]
-  deliveryDays       SubscriptionDeliveryDay[]
+  id                  String               @id @default(uuid())
+  user                User                 @relation(fields: [userId], references: [id])
+  userId              String
+  fullName            String
+  mealPlan            MealPlan             @relation(fields: [mealPlanId], references: [id])
+  mealPlanId          String
+  phone               String
+  allergies           String?
+  totalPrice          Decimal              @db.Decimal(10, 2)
+  status              SubscriptionStatus   @default(active)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  mealTypes           SubscriptionMealType[]
+  deliveryDays        SubscriptionDeliveryDay[]
+
+  pausedStartDate     DateTime? 
+  pausedEndDate       DateTime? 
+  cancelledAt         DateTime? 
+  reactivatedAt       DateTime? 
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([cancelledAt])
+  @@index([reactivatedAt])
 }
 
 model MealPlan {
@@ -60,23 +72,25 @@ model MealPlan {
 }
 
 model MealType {
-  id          String                 @id @default(uuid())
-  name        String                 @unique
+  id          String               @id @default(uuid())
+  name        String               @unique
   subscriptions SubscriptionMealType[]
 }
 
 model DeliveryDay {
-  id          String                    @id @default(uuid())
-  name        String                    @unique
+  id          String                  @id @default(uuid())
+  name        String                  @unique
   subscriptions SubscriptionDeliveryDay[]
 }
 
 model SubscriptionMealType {
-  id             String        @id @default(uuid())
-  subscription   Subscription  @relation(fields: [subscriptionId], references: [id])
+  id             String       @id @default(uuid())
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id])
   subscriptionId String
-  mealType       MealType      @relation(fields: [mealTypeId], references: [id])
+  mealType       MealType     @relation(fields: [mealTypeId], references: [id])
   mealTypeId     String
+
+  @@unique([subscriptionId, mealTypeId]) 
 }
 
 model SubscriptionDeliveryDay {
@@ -85,6 +99,8 @@ model SubscriptionDeliveryDay {
   subscriptionId String
   deliveryDay    DeliveryDay   @relation(fields: [deliveryDayId], references: [id])
   deliveryDayId  String
+
+  @@unique([subscriptionId, deliveryDayId]) 
 }
 
 model Testimonial {
