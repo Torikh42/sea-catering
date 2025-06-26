@@ -1,5 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@tailwind utilities;
+
+@import "./datepicker.css";
 
 @custom-variant dark (&:is(.dark *));
 

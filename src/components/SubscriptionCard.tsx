@@ -26,6 +26,11 @@ import {
   XCircle,
 } from "lucide-react";
 
+// START: Tambahkan impor untuk DatePicker
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+// Pastikan Anda telah menambahkan styling kustom untuk datepicker jika diperlukan
+
 interface SubscriptionCardProps {
   subscription: SerializableSubscription;
   onUpdate: () => void;
@@ -52,21 +57,48 @@ export function SubscriptionCard({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handlePause = async () => {
-    const startDate = new Date();
-    const endDate = new Date(
-      startDate.getFullYear(),
-      startDate.getMonth() + 1,
-      startDate.getDate(),
-    );
+  // START: State baru untuk fitur jeda
+  const [showPauseDates, setShowPauseDates] = useState(false);
+  const [pauseStartDate, setPauseStartDate] = useState<Date | null>(null);
+  const [pauseEndDate, setPauseEndDate] = useState<Date | null>(null);
+  // END: State baru untuk fitur jeda
+
+  const handleConfirmPause = async () => {
+    // Validasi input tanggal
+    if (!pauseStartDate || !pauseEndDate) {
+      setMessage("Silakan pilih tanggal mulai dan akhir jeda.");
+      return;
+    }
+    // Pastikan tanggal akhir setelah tanggal mulai
+    if (pauseStartDate >= pauseEndDate) {
+      setMessage("Tanggal akhir harus setelah tanggal mulai.");
+      return;
+    }
+    // Pastikan tanggal jeda tidak di masa lalu
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time for comparison
+    if (pauseStartDate < today) {
+      setMessage("Tanggal mulai jeda tidak bisa di masa lalu.");
+      return;
+    }
 
     setIsSubmitting(true);
     setMessage("");
-    const result = await pauseSubscription(subscription.id, startDate, endDate);
+    // Panggil action dengan tanggal yang dipilih
+    const result = await pauseSubscription(
+      subscription.id,
+      pauseStartDate,
+      pauseEndDate,
+    );
     setMessage(result.message);
     setIsSubmitting(false);
+
     if (result.success) {
       onUpdate();
+      // Reset state setelah berhasil
+      setShowPauseDates(false);
+      setPauseStartDate(null);
+      setPauseEndDate(null);
     }
   };
 
@@ -268,14 +300,83 @@ export function SubscriptionCard({
         <div className="flex flex-wrap gap-3">
           {subscription.status === "active" && (
             <>
-              <button
-                onClick={handlePause}
-                disabled={isSubmitting}
-                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:from-amber-600 hover:to-orange-600 hover:shadow-lg disabled:transform-none disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <Pause className="h-4 w-4" />
-                {isSubmitting ? "Memproses..." : "Jeda Langganan"}
-              </button>
+              {/* START: Logika dan UI untuk jeda langganan */}
+              {showPauseDates ? (
+                <div className="flex w-full flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-inner">
+                  <p className="text-sm font-semibold text-amber-800">
+                    Pilih rentang tanggal jeda:
+                  </p>
+                  <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                    <div className="flex-1">
+                      <label className="mb-1 block text-xs font-medium text-gray-600">
+                        Mulai Jeda
+                      </label>
+                      <DatePicker
+                        selected={pauseStartDate}
+                        onChange={(date: Date | null) => setPauseStartDate(date)}
+                        selectsStart
+                        startDate={pauseStartDate}
+                        endDate={pauseEndDate}
+                        minDate={new Date()}
+                        dateFormat="dd/MM/yyyy"
+                        placeholderText="Tanggal Mulai"
+                        className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-amber-500 focus:ring-amber-500"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="mb-1 block text-xs font-medium text-gray-600">
+                        Akhir Jeda
+                      </label>
+                      <DatePicker
+                        selected={pauseEndDate}
+                        onChange={(date: Date | null) => setPauseEndDate(date)}
+                        selectsEnd
+                        startDate={pauseStartDate}
+                        endDate={pauseEndDate}
+                        minDate={pauseStartDate || new Date()}
+                        dateFormat="dd/MM/yyyy"
+                        placeholderText="Tanggal Akhir"
+                        className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-amber-500 focus:ring-amber-500"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      onClick={handleConfirmPause}
+                      disabled={
+                        isSubmitting || !pauseStartDate || !pauseEndDate
+                      }
+                      className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-amber-600 px-4 py-2 font-medium text-white transition-colors duration-200 hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {isSubmitting ? "Memproses..." : "Konfirmasi Jeda"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowPauseDates(false);
+                        setMessage(""); // Clear message on cancel
+                        setPauseStartDate(null);
+                        setPauseEndDate(null);
+                      }}
+                      disabled={isSubmitting}
+                      className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 transition-colors duration-200 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Batal
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                // Tampilkan tombol jeda jika belum memilih tanggal
+                <button
+                  onClick={() => setShowPauseDates(true)}
+                  disabled={isSubmitting}
+                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:from-amber-600 hover:to-orange-600 hover:shadow-lg disabled:transform-none disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Pause className="h-4 w-4" />
+                  Jeda Langganan
+                </button>
+              )}
+              {/* END: Logika dan UI untuk jeda langganan */}
+
               <button
                 onClick={handleCancel}
                 disabled={isSubmitting}

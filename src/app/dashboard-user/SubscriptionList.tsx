@@ -53,7 +53,6 @@ export function SubscriptionList({ initialSubscriptions }: SubscriptionListProps
                     <SubscriptionCard 
                         key={sub.id} 
                         subscription={sub} 
-                        // Sekarang onUpdate dilewatkan antar Client Component, tidak ada masalah serialisasi
                         onUpdate={fetchSubscriptions} 
                     />
                 ))
