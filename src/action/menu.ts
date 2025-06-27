@@ -7,6 +7,5 @@ export const getAllMealPlans = async () => {
     orderBy: { name: "asc" },
   });
 
-
   return mealPlans.map((item) => mealPlanSchema.parse(item));
 };

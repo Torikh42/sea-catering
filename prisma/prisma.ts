@@ -1,8 +1,5 @@
-// prisma/prisma.ts
 import { PrismaClient } from "@prisma/client";
 
-// Mencegah pembuatan instance Prisma Client baru di setiap hot reload development
-// Ini adalah pattern umum untuk Next.js
 const prismaClientSingleton = () => {
   return new PrismaClient();
 };

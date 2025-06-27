@@ -18,7 +18,6 @@ export function LihatMenuButton() {
           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
         </div>
         
-        {/* Hover effect background */}
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-100/50 to-teal-100/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
       </Button>
     </Link>

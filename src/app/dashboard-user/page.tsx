@@ -1,5 +1,3 @@
-// app/user-dashboard/page.tsx (misalnya)
-
 import { redirect } from "next/navigation";
 import { getUser } from "@/auth/server";
 import { getUserSubscriptions } from "@/action/userDashboard";

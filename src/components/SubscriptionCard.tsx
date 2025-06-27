@@ -1,4 +1,3 @@
-// components/SubscriptionCard.tsx
 "use client";
 
 import { useState } from "react";
@@ -26,10 +25,21 @@ import {
   XCircle,
 } from "lucide-react";
 
-// START: Tambahkan impor untuk DatePicker
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-// Pastikan Anda telah menambahkan styling kustom untuk datepicker jika diperlukan
+import { DatePicker } from "@/components/DatePicker";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 interface SubscriptionCardProps {
   subscription: SerializableSubscription;
@@ -47,7 +57,7 @@ const formatPrice = (price: number) => {
 
 const formatDate = (dateString: string | null) => {
   if (!dateString) return "N/A";
-  return format(new Date(dateString), "d MMMM yyyy", { locale: id });
+  return format(new Date(dateString), "d MMMM", { locale: id });
 };
 
 export function SubscriptionCard({
@@ -57,72 +67,103 @@ export function SubscriptionCard({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
 
-  // START: State baru untuk fitur jeda
   const [showPauseDates, setShowPauseDates] = useState(false);
-  const [pauseStartDate, setPauseStartDate] = useState<Date | null>(null);
-  const [pauseEndDate, setPauseEndDate] = useState<Date | null>(null);
-  // END: State baru untuk fitur jeda
+  const [pauseStartDate, setPauseStartDate] = useState<Date | undefined>(
+    undefined,
+  );
+  const [pauseEndDate, setPauseEndDate] = useState<Date | undefined>(undefined);
+
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   const handleConfirmPause = async () => {
-    // Validasi input tanggal
     if (!pauseStartDate || !pauseEndDate) {
-      setMessage("Silakan pilih tanggal mulai dan akhir jeda.");
-      return;
-    }
-    // Pastikan tanggal akhir setelah tanggal mulai
-    if (pauseStartDate >= pauseEndDate) {
-      setMessage("Tanggal akhir harus setelah tanggal mulai.");
-      return;
-    }
-    // Pastikan tanggal jeda tidak di masa lalu
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time for comparison
-    if (pauseStartDate < today) {
-      setMessage("Tanggal mulai jeda tidak bisa di masa lalu.");
+      toast.error("Validasi gagal.", {
+        description: "Silakan pilih tanggal mulai dan akhir jeda.",
+      });
       return;
     }
 
     setIsSubmitting(true);
     setMessage("");
-    // Panggil action dengan tanggal yang dipilih
-    const result = await pauseSubscription(
-      subscription.id,
-      pauseStartDate,
-      pauseEndDate,
-    );
-    setMessage(result.message);
-    setIsSubmitting(false);
 
-    if (result.success) {
-      onUpdate();
-      // Reset state setelah berhasil
-      setShowPauseDates(false);
-      setPauseStartDate(null);
-      setPauseEndDate(null);
+    try {
+      const result = await pauseSubscription(
+        subscription.id,
+        pauseStartDate,
+        pauseEndDate,
+      );
+
+      if (result.success) {
+        onUpdate();
+        setShowPauseDates(false);
+        setPauseStartDate(undefined);
+        setPauseEndDate(undefined);
+        toast.success("Langganan berhasil dijeda.", {
+          description: result.message,
+        });
+      } else {
+        setMessage(result.message);
+        toast.error("Gagal menjeda langganan.", {
+          description: result.message,
+        });
+      }
+    } catch (error) {
+      console.error("Error during pause confirmation:", error);
+      setMessage("Terjadi kesalahan tak terduga. Silakan coba lagi.");
+      toast.error("Terjadi kesalahan tak terduga.", {
+        description: "Silakan periksa koneksi Anda dan coba lagi.",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleCancel = async () => {
-    if (!window.confirm("Apakah Anda yakin ingin membatalkan langganan ini?"))
-      return;
     setIsSubmitting(true);
     setMessage("");
+
     const result = await cancelSubscription(subscription.id);
-    setMessage(result.message);
     setIsSubmitting(false);
+
     if (result.success) {
       onUpdate();
+      toast.success("Langganan berhasil dibatalkan.", {
+        description: `Langganan paket ${subscription.mealPlan.name} telah dihentikan.`,
+      });
+    } else {
+      setMessage(result.message);
+      toast.error("Gagal membatalkan langganan.", {
+        description: result.message,
+      });
     }
   };
 
   const handleResume = async () => {
     setIsSubmitting(true);
     setMessage("");
-    const result = await resumeSubscription(subscription.id);
-    setMessage(result.message);
-    setIsSubmitting(false);
-    if (result.success) {
-      onUpdate();
+
+    try {
+      const result = await resumeSubscription(subscription.id);
+
+      if (result.success) {
+        onUpdate();
+        toast.success("Langganan berhasil diaktifkan kembali.", {
+          description: result.message,
+        });
+      } else {
+        setMessage(result.message);
+        toast.error("Gagal mengaktifkan langganan kembali.", {
+          description: result.message,
+        });
+      }
+    } catch (error) {
+      console.error("Error resuming subscription:", error);
+      setMessage("Terjadi kesalahan tak terduga. Silakan coba lagi.");
+      toast.error("Terjadi kesalahan tak terduga.", {
+        description: "Silakan periksa koneksi Anda dan coba lagi.",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -130,39 +171,42 @@ export function SubscriptionCard({
     switch (status) {
       case "active":
         return {
-          color: "bg-emerald-100 text-emerald-800 border-emerald-200",
           icon: CheckCircle,
+          color: "bg-green-100 text-green-700 border-green-200",
           text: "Aktif",
         };
       case "paused":
         return {
-          color: "bg-amber-100 text-amber-800 border-amber-200",
-          icon: AlertCircle,
-          text: "Dijeda",
+          icon: Pause,
+          color: "bg-amber-100 text-amber-700 border-amber-200",
+          text: "Jeda",
         };
       case "cancelled":
         return {
-          color: "bg-red-100 text-red-800 border-red-200",
           icon: XCircle,
+          color: "bg-gray-100 text-gray-500 border-gray-200",
           text: "Dibatalkan",
         };
       default:
         return {
-          color: "bg-gray-100 text-gray-800 border-gray-200",
           icon: AlertCircle,
-          text: status,
+          color: "bg-gray-100 text-gray-500 border-gray-200",
+          text: "Tidak Diketahui",
         };
     }
   };
 
   const statusConfig = getStatusConfig(subscription.status);
   const StatusIcon = statusConfig.icon;
+  const isSuccess = message.includes("berhasil");
+  const AlertIcon = isSuccess ? CheckCircle : AlertCircle;
+
+  const actionButtonClasses =
+    "flex items-center gap-2 rounded-xl px-6 py-3 font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg disabled:transform-none disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
     <div className="group relative mx-auto max-w-md overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-      {/* Header with image background and gradient overlay - Increased height */}
       <div className="relative min-h-[180px] overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 p-5 md:min-h-[240px] lg:min-h-[280px]">
-        {/* Background image */}
         {subscription.mealPlan.imageUrl && (
           <div className="absolute inset-0 overflow-hidden">
             <Image
@@ -173,11 +217,8 @@ export function SubscriptionCard({
             />
           </div>
         )}
-        {/* Gradient overlay untuk visibilitas teks */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/20" />
-
         <div className="relative z-10 flex h-full min-h-[156px] flex-col justify-between md:min-h-[216px] lg:min-h-[256px]">
-          {/* Top section with status */}
           <div className="flex items-start justify-between">
             <div className="max-w-[70%] flex-1">
               <h3 className="mb-2 text-xl leading-tight font-bold text-white md:text-2xl lg:text-3xl">
@@ -187,7 +228,6 @@ export function SubscriptionCard({
                 {subscription.mealPlan.description}
               </p>
             </div>
-
             <div
               className={`flex items-center gap-2 rounded-full border px-4 py-2 ${statusConfig.color} relative z-20 flex-shrink-0 backdrop-blur-sm`}
             >
@@ -195,13 +235,10 @@ export function SubscriptionCard({
               <span className="text-sm font-semibold">{statusConfig.text}</span>
             </div>
           </div>
-
-          {/* Bottom section - spacer */}
           <div className="flex-1" />
         </div>
       </div>
 
-      {/* Price badge - Positioned between image and content */}
       <div className="relative z-30 -mt-6 mb-6 flex justify-center">
         <div className="rounded-xl border border-gray-100 bg-white px-6 py-3 shadow-lg">
           <div className="text-center text-xs font-medium text-gray-500">
@@ -213,9 +250,7 @@ export function SubscriptionCard({
         </div>
       </div>
 
-      {/* Content */}
       <div className="p-5 pt-0">
-        {/* Meal Types */}
         <div className="mb-6">
           <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
             <Utensils className="h-4 w-4 text-orange-500" />
@@ -238,7 +273,6 @@ export function SubscriptionCard({
           </div>
         </div>
 
-        {/* Info Grid */}
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="flex items-start gap-3 rounded-xl border border-gray-100 bg-gray-50 p-4">
             <Phone className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-500" />
@@ -282,7 +316,6 @@ export function SubscriptionCard({
           </div>
         </div>
 
-        {/* Pause Period Info */}
         {subscription.pausedStartDate && (
           <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
             <div className="mb-2 flex items-center gap-2">
@@ -296,11 +329,9 @@ export function SubscriptionCard({
           </div>
         )}
 
-        {/* Action Buttons */}
         <div className="flex flex-wrap gap-3">
           {subscription.status === "active" && (
             <>
-              {/* START: Logika dan UI untuk jeda langganan */}
               {showPauseDates ? (
                 <div className="flex w-full flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-inner">
                   <p className="text-sm font-semibold text-amber-800">
@@ -312,15 +343,10 @@ export function SubscriptionCard({
                         Mulai Jeda
                       </label>
                       <DatePicker
-                        selected={pauseStartDate}
-                        onChange={(date: Date | null) => setPauseStartDate(date)}
-                        selectsStart
-                        startDate={pauseStartDate}
-                        endDate={pauseEndDate}
+                        date={pauseStartDate ?? null}
+                        setDate={setPauseStartDate}
+                        placeholder="Tanggal Mulai"
                         minDate={new Date()}
-                        dateFormat="dd/MM/yyyy"
-                        placeholderText="Tanggal Mulai"
-                        className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-amber-500 focus:ring-amber-500"
                       />
                     </div>
                     <div className="flex-1">
@@ -328,15 +354,10 @@ export function SubscriptionCard({
                         Akhir Jeda
                       </label>
                       <DatePicker
-                        selected={pauseEndDate}
-                        onChange={(date: Date | null) => setPauseEndDate(date)}
-                        selectsEnd
-                        startDate={pauseStartDate}
-                        endDate={pauseEndDate}
+                        date={pauseEndDate ?? null}
+                        setDate={setPauseEndDate}
+                        placeholder="Tanggal Akhir"
                         minDate={pauseStartDate || new Date()}
-                        dateFormat="dd/MM/yyyy"
-                        placeholderText="Tanggal Akhir"
-                        className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-amber-500 focus:ring-amber-500"
                       />
                     </div>
                   </div>
@@ -353,9 +374,9 @@ export function SubscriptionCard({
                     <button
                       onClick={() => {
                         setShowPauseDates(false);
-                        setMessage(""); // Clear message on cancel
-                        setPauseStartDate(null);
-                        setPauseEndDate(null);
+                        setMessage("");
+                        setPauseStartDate(undefined);
+                        setPauseEndDate(undefined);
                       }}
                       disabled={isSubmitting}
                       className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 transition-colors duration-200 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
@@ -365,26 +386,51 @@ export function SubscriptionCard({
                   </div>
                 </div>
               ) : (
-                // Tampilkan tombol jeda jika belum memilih tanggal
                 <button
                   onClick={() => setShowPauseDates(true)}
                   disabled={isSubmitting}
-                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:from-amber-600 hover:to-orange-600 hover:shadow-lg disabled:transform-none disabled:cursor-not-allowed disabled:opacity-50"
+                  className={`${actionButtonClasses} bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600`}
                 >
                   <Pause className="h-4 w-4" />
                   Jeda Langganan
                 </button>
               )}
-              {/* END: Logika dan UI untuk jeda langganan */}
 
-              <button
-                onClick={handleCancel}
-                disabled={isSubmitting}
-                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-red-500 to-pink-500 px-6 py-3 font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:from-red-600 hover:to-pink-600 hover:shadow-lg disabled:transform-none disabled:cursor-not-allowed disabled:opacity-50"
+              <Dialog
+                open={showCancelDialog}
+                onOpenChange={setShowCancelDialog}
               >
-                <X className="h-4 w-4" />
-                {isSubmitting ? "Memproses..." : "Batalkan"}
-              </button>
+                <DialogTrigger asChild>
+                  <button
+                    disabled={isSubmitting}
+                    className={`${actionButtonClasses} bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600`}
+                  >
+                    <X className="h-4 w-4" />
+                    Batalkan
+                  </button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Apakah Anda yakin?</DialogTitle>
+                    <DialogDescription>
+                      Tindakan ini tidak dapat diurungkan. Ini akan membatalkan
+                      langganan Anda secara permanen.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button variant="outline">Batal</Button>
+                    </DialogClose>
+                    <Button
+                      onClick={handleCancel}
+                      disabled={isSubmitting}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      {isSubmitting ? "Memproses..." : "Ya, Batalkan Langganan"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </>
           )}
           {subscription.status === "paused" && (
@@ -405,17 +451,19 @@ export function SubscriptionCard({
           )}
         </div>
 
-        {/* Message */}
         {message && (
-          <div
-            className={`mt-4 rounded-xl p-4 ${
-              message.includes("berhasil")
-                ? "border border-emerald-200 bg-emerald-50 text-emerald-800"
-                : "border border-red-200 bg-red-50 text-red-800"
-            }`}
+          <Alert
+            className={`mt-4 ${isSuccess ? "border-emerald-200" : "border-red-200"} bg-white shadow`}
           >
-            <p className="text-sm font-medium">{message}</p>
-          </div>
+            <AlertIcon
+              className={`h-4 w-4 ${isSuccess ? "text-emerald-600" : "text-red-600"}`}
+            />
+            <AlertDescription
+              className={`${isSuccess ? "text-emerald-800" : "text-red-800"} text-sm font-medium`}
+            >
+              {message}
+            </AlertDescription>
+          </Alert>
         )}
       </div>
     </div>

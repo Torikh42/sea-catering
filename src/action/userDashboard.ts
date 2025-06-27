@@ -1,9 +1,9 @@
-// actions/userDashboard.ts
 "use server";
 
 import { SubscriptionStatus } from "@prisma/client";
-import prisma from "../../prisma/prisma"; // Make sure this path is correct
-import { createClient } from "@/auth/server"; // Import the Supabase client helper
+import prisma from "../../prisma/prisma";
+import { createClient } from "@/auth/server";
+import { PauseSubscriptionSchema } from "@/schema/subscriptionSchema";
 
 export interface SerializableSubscription {
   id: string;
@@ -27,7 +27,6 @@ export interface SerializableSubscription {
   deliveryDays: { name: string }[];
 }
 
-// --- PERBAIKAN: Definisi tipe data untuk respons aksi server ---
 type ActionResponse = {
   success: boolean;
   message: string;
@@ -118,13 +117,12 @@ export async function getUserSubscriptions(): Promise<
 
 /**
  * Pauses a subscription for a specific date range.
- * It now checks for user authorization.
+ * It now checks for user authorization and validates dates.
  * @param subscriptionId The ID of the subscription to pause.
  * @param startDate The start date of the pause period.
  * @param endDate The end date of the pause period.
  * @returns A response object with success status and a message.
  */
-// --- PERBAIKAN: Tambahkan Promise<ActionResponse> untuk tipe pengembalian ---
 export async function pauseSubscription(
   subscriptionId: string,
   startDate: Date,
@@ -138,15 +136,29 @@ export async function pauseSubscription(
     if (!user)
       return { success: false, message: "Akses ditolak. Anda harus login." };
 
+    const validationResult = PauseSubscriptionSchema.safeParse({
+      subscriptionId,
+      startDate,
+      endDate,
+    });
+
+    if (!validationResult.success) {
+      const errorMessage = validationResult.error.errors[0].message;
+      console.error("Validation Error:", errorMessage);
+      return { success: false, message: errorMessage };
+    }
+
+    const validatedData = validationResult.data;
+
     const updatedSubscription = await prisma.subscription.update({
       where: {
-        id: subscriptionId, // 'subscriptionId' digunakan di sini
+        id: validatedData.subscriptionId,
         userId: user.id,
       },
       data: {
         status: SubscriptionStatus.paused,
-        pausedStartDate: startDate,
-        pausedEndDate: endDate,
+        pausedStartDate: validatedData.startDate,
+        pausedEndDate: validatedData.endDate,
       },
     });
 
@@ -176,7 +188,6 @@ export async function pauseSubscription(
  * @param subscriptionId The ID of the subscription to cancel.
  * @returns A response object with success status and a message.
  */
-// --- PERBAIKAN: Tambahkan Promise<ActionResponse> untuk tipe pengembalian ---
 export async function cancelSubscription(
   subscriptionId: string,
 ): Promise<ActionResponse> {
@@ -190,7 +201,7 @@ export async function cancelSubscription(
 
     const updatedSubscription = await prisma.subscription.update({
       where: {
-        id: subscriptionId, // 'subscriptionId' digunakan di sini
+        id: subscriptionId,
         userId: user.id,
       },
       data: {
@@ -225,7 +236,6 @@ export async function cancelSubscription(
  * @param subscriptionId The ID of the subscription to resume.
  * @returns A response object with success status and a message.
  */
-// --- PERBAIKAN: Tambahkan Promise<ActionResponse> untuk tipe pengembalian ---
 export async function resumeSubscription(
   subscriptionId: string,
 ): Promise<ActionResponse> {
@@ -239,7 +249,7 @@ export async function resumeSubscription(
 
     const updatedSubscription = await prisma.subscription.update({
       where: {
-        id: subscriptionId, // 'subscriptionId' digunakan di sini
+        id: subscriptionId,
         userId: user.id,
       },
       data: {

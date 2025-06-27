@@ -29,10 +29,8 @@ export default function MealPlanCard({ plan }: { plan: SimplifiedMealPlan }) {
   return (
     <>
       <Card className="group relative transform overflow-hidden rounded-2xl border-0 bg-white shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl">
-        {/* Gradient overlay */}
         <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-        {/* Popular badge */}
         <div className="absolute top-4 right-4 z-20 flex items-center gap-1 rounded-full bg-gradient-to-r from-yellow-400 to-orange-400 px-3 py-1 text-xs font-bold text-white shadow-lg">
           <Star className="h-3 w-3 fill-current" />
           Popular
@@ -56,7 +54,6 @@ export default function MealPlanCard({ plan }: { plan: SimplifiedMealPlan }) {
               </div>
             )}
 
-            {/* Floating price tag */}
             <div className="absolute bottom-4 left-4 z-20 rounded-xl bg-white/95 px-3 py-2 shadow-lg backdrop-blur-sm">
               <div className="text-xs font-medium text-gray-500">
                 Mulai dari
@@ -78,7 +75,6 @@ export default function MealPlanCard({ plan }: { plan: SimplifiedMealPlan }) {
           </CardDescription>
         </CardHeader>
 
-        {/* Quick info */}
         <div className="flex items-center gap-4 px-6 pb-4 text-xs text-gray-500">
           <div className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
@@ -108,7 +104,6 @@ export default function MealPlanCard({ plan }: { plan: SimplifiedMealPlan }) {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-white to-green-50 p-0 max-h-[95vh] overflow-y-auto m-2 sm:m-0 sm:max-h-none sm:overflow-y-visible">
-          {/* Close button - visible on both mobile and desktop */}
           <button
             onClick={() => setOpen(false)}
             className="absolute top-4 right-4 z-50 rounded-full bg-black/20 p-2 text-white backdrop-blur-sm transition-all hover:bg-black/30 sm:bg-white/90 sm:text-gray-600 sm:hover:bg-white sm:shadow-lg"
@@ -127,7 +122,6 @@ export default function MealPlanCard({ plan }: { plan: SimplifiedMealPlan }) {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
 
-                {/* Floating title */}
                 <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 text-white">
                   <h2 className="mb-2 text-xl sm:text-3xl font-bold">{plan.name}</h2>
                   <div className="flex items-center gap-2 text-green-200">
@@ -150,7 +144,6 @@ export default function MealPlanCard({ plan }: { plan: SimplifiedMealPlan }) {
               </DialogHeader>
 
               <div className="space-y-4 sm:space-y-6">
-                {/* Price section */}
                 <div className="rounded-xl sm:rounded-2xl bg-gradient-to-r from-green-500 to-blue-500 p-4 sm:p-6 text-white">
                   <div className="flex items-center justify-between">
                     <div>
@@ -167,7 +160,6 @@ export default function MealPlanCard({ plan }: { plan: SimplifiedMealPlan }) {
                   </div>
                 </div>
 
-                {/* Description */}
                 <div className="rounded-xl sm:rounded-2xl border border-gray-100 bg-white p-4 sm:p-6 shadow-sm">
                   <h3 className="mb-3 flex items-center gap-2 text-base sm:text-lg font-semibold text-gray-800">
                     <Utensils className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
@@ -178,7 +170,6 @@ export default function MealPlanCard({ plan }: { plan: SimplifiedMealPlan }) {
                   </p>
                 </div>
 
-                {/* Features */}
                 <div className="grid grid-cols-3 gap-2 sm:gap-4">
                   <div className="rounded-lg sm:rounded-xl border border-yellow-200 bg-yellow-50 p-3 sm:p-4 text-center">
                     <Clock className="mx-auto mb-1 sm:mb-2 h-5 w-5 sm:h-6 sm:w-6 text-yellow-600" />
@@ -199,7 +190,6 @@ export default function MealPlanCard({ plan }: { plan: SimplifiedMealPlan }) {
                   </div>
                 </div>
 
-                {/* CTA Button */}
                 <div className="pb-2 sm:pb-0">
                   <Link href="/subscription">
                     <Button className="h-12 sm:h-14 w-full transform rounded-xl bg-gradient-to-r from-green-600 to-blue-600 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:from-green-700 hover:to-blue-700 hover:shadow-xl">

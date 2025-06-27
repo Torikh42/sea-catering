@@ -9,7 +9,6 @@ interface CreateTestimonialInput {
 
 export async function createTestimonial(data: CreateTestimonialInput) {
   try {
-    // Server-side validation
     if (!data.name || data.name.trim() === "") {
       return { success: false, message: "Nama pelanggan diperlukan." };
     }
@@ -43,7 +42,6 @@ export async function createTestimonial(data: CreateTestimonialInput) {
   }
 }
 
-// Interface untuk testimonial yang diambil dari DB (opsional, untuk type safety)
 export interface TestimonialData {
   id: string;
   name: string;
@@ -60,7 +58,7 @@ export async function getTestimonials(): Promise<{
   try {
     const testimonials = await prisma.testimonial.findMany({
       orderBy: { createdAt: "desc" },
-      take: 10, // Mengambil 10 testimoni terbaru
+      take: 10,
     });
     return { success: true, data: testimonials };
   } catch (error) {

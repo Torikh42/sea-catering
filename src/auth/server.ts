@@ -1,4 +1,4 @@
-"use server"
+"use server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
@@ -29,12 +29,25 @@ export async function createClient() {
 
 export async function getUser() {
   const { auth } = await createClient();
+  const {
+    data: { user },
+    error,
+  } = await auth.getUser();
 
-  const userObject = await auth.getUser();
-
-  if (userObject.error) {
-    console.error(userObject.error);
+  if (error || !user) {
+    console.error(error);
     return null;
   }
-  return userObject.data.user;
+
+  const userRole = user.user_metadata?.role || "user";
+
+  console.log("[Auth Server] Final user role from metadata:", userRole);
+  console.log("[Auth Server] User email:", user.email);
+
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.user_metadata?.name, 
+    role: userRole,
+  };
 }

@@ -1,3 +1,4 @@
+// Header.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -15,6 +16,7 @@ const navItems = [
   { href: "/contact", label: "Contact Us" },
 ];
 
+// Perbarui tipe User untuk mencerminkan objek yang dikembalikan dari getUser()
 type User = {
   id?: string;
   email?: string;
@@ -26,13 +28,20 @@ export default function Header({ user }: { user?: User }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
+  // Debugging logs (biarkan tetap ada)
+  console.log("Header Component - User Prop:", user);
+  console.log("Header Component - User Role:", user?.role);
+
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
     return pathname.startsWith(href);
   };
 
+  // Sekarang kita bisa langsung cek user?.role karena sudah dijamin ada
   const dashboardHref =
     user?.role === "admin" ? "/dashboard-admin" : "/dashboard-user";
+
+  console.log("Header Component - Dashboard Href:", dashboardHref);
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-100 bg-white shadow-lg">
@@ -42,7 +51,7 @@ export default function Header({ user }: { user?: User }) {
           href="/"
         >
           <Image
-            src="/image-sea.png"
+            src="https://res.cloudinary.com/dsw1iot8d/image/upload/v1751033917/Screenshot_2025-06-24_095226_ryv3ih.png"
             height={40}
             width={40}
             alt="logo"
@@ -78,9 +87,7 @@ export default function Header({ user }: { user?: User }) {
 
         <div className="hidden flex-shrink-0 items-center gap-2 md:flex">
           {user ? (
-            // --- PERUBAHAN: Tampilkan tombol Dashboard dan Logout jika user login ---
             <>
-              {/* Tampilkan tombol Dashboard jika user memiliki role */}
               {user.role && (
                 <Button
                   asChild
@@ -94,11 +101,9 @@ export default function Header({ user }: { user?: User }) {
                   <Link href={dashboardHref}>Dashboard</Link>
                 </Button>
               )}
-              {/* Tampilkan tombol Logout */}
               <LogOutButton />
             </>
           ) : (
-            // --- Tampilkan tombol Login dan Sign Up jika user belum login ---
             <>
               <Button
                 asChild
@@ -153,7 +158,6 @@ export default function Header({ user }: { user?: User }) {
             ))}
             <div className="flex flex-col gap-2 border-t border-gray-200 pt-2">
               {user ? (
-                // --- PERUBAHAN: Tombol Dashboard dan Logout untuk mobile ---
                 <>
                   {user.role && (
                     <Button
@@ -162,7 +166,9 @@ export default function Header({ user }: { user?: User }) {
                       className="w-full justify-start"
                       onClick={() => setMobileOpen(false)}
                     >
-                      <Link href={dashboardHref}>Dashboard</Link>
+                      <Link href={dashboardHref}>
+                        Dashboard {user.role === "admin" ? "(Admin)" : "(User)"}
+                      </Link>
                     </Button>
                   )}
                   <div onClick={() => setMobileOpen(false)}>
@@ -170,7 +176,6 @@ export default function Header({ user }: { user?: User }) {
                   </div>
                 </>
               ) : (
-                // --- Tombol Login dan Sign Up untuk mobile ---
                 <>
                   <Button
                     asChild
