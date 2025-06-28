@@ -16,32 +16,34 @@ const navItems = [
   { href: "/contact", label: "Contact Us" },
 ];
 
-// Perbarui tipe User untuk mencerminkan objek yang dikembalikan dari getUser()
 type User = {
   id?: string;
   email?: string;
   name?: string;
   role?: "user" | "admin" | string | null;
+  user_metadata?: {
+    fullName?: string;
+  };
 } | null;
 
 export default function Header({ user }: { user?: User }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
-  // Debugging logs (biarkan tetap ada)
-  console.log("Header Component - User Prop:", user);
-  console.log("Header Component - User Role:", user?.role);
-
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
     return pathname.startsWith(href);
   };
 
-  // Sekarang kita bisa langsung cek user?.role karena sudah dijamin ada
   const dashboardHref =
     user?.role === "admin" ? "/dashboard-admin" : "/dashboard-user";
 
-  console.log("Header Component - Dashboard Href:", dashboardHref);
+  // Dapatkan nama depan user, prioritaskan 'name' lalu 'user_metadata.fullName'
+  const firstName = user?.name
+    ? user.name.split(" ")[0]
+    : user?.user_metadata?.fullName
+      ? String(user.user_metadata.fullName).split(" ")[0]
+      : null;
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-100 bg-white shadow-lg">
@@ -88,23 +90,33 @@ export default function Header({ user }: { user?: User }) {
         <div className="hidden flex-shrink-0 items-center gap-2 md:flex">
           {user ? (
             <>
-              {user.role && (
-                <Button
-                  asChild
-                  variant={isActive(dashboardHref) ? "default" : "ghost"}
-                  className={`transition-all duration-200 ${
-                    isActive(dashboardHref)
-                      ? "bg-blue-500 text-white hover:bg-blue-600"
-                      : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
-                  }`}
-                >
-                  <Link href={dashboardHref}>Dashboard</Link>
-                </Button>
-              )}
+              {/* Ini akan tampil jika user login */}
+              <div className="flex items-center gap-2">
+                {/* Sapaan hanya tampil jika firstName ada */}
+                {firstName && (
+                  <span className="hidden text-sm font-semibold text-gray-700 sm:block">
+                    Hey, {firstName}!
+                  </span>
+                )}
+                {user.role && (
+                  <Button
+                    asChild
+                    variant={isActive(dashboardHref) ? "default" : "ghost"}
+                    className={`transition-all duration-200 ${
+                      isActive(dashboardHref)
+                        ? "bg-blue-500 text-white hover:bg-blue-600"
+                        : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                    }`}
+                  >
+                    <Link href={dashboardHref}>Dashboard</Link>
+                  </Button>
+                )}
+              </div>
               <LogOutButton />
             </>
           ) : (
             <>
+              {/* Ini akan tampil jika user belum login */}
               <Button
                 asChild
                 variant="outline"
@@ -166,9 +178,7 @@ export default function Header({ user }: { user?: User }) {
                       className="w-full justify-start"
                       onClick={() => setMobileOpen(false)}
                     >
-                      <Link href={dashboardHref}>
-                        Dashboard {user.role === "admin" ? "(Admin)" : "(User)"}
-                      </Link>
+                      <Link href={dashboardHref}>Dashboard</Link>
                     </Button>
                   )}
                   <div onClick={() => setMobileOpen(false)}>

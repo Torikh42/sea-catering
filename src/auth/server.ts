@@ -41,13 +41,17 @@ export async function getUser() {
 
   const userRole = user.user_metadata?.role || "user";
 
+  const userName = user.user_metadata?.fullName;
+
+  console.log("[Auth Server] User metadata:", user.user_metadata);
+
   console.log("[Auth Server] Final user role from metadata:", userRole);
   console.log("[Auth Server] User email:", user.email);
 
   return {
     id: user.id,
     email: user.email,
-    name: user.user_metadata?.name, 
+    name: userName,
     role: userRole,
   };
 }
