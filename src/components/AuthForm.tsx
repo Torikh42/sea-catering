@@ -1,3 +1,4 @@
+// authForm.tsx
 "use client";
 import { useRouter } from "next/navigation";
 import React, { useTransition } from "react";
@@ -36,6 +37,8 @@ const AuthForm = ({ type }: Props) => {
 
         if (!errorMessage) {
           toast.success("Anda berhasil masuk.");
+          // >>> TAMBAHKAN INI UNTUK MEMAKSA REVALIDASI DATA SERVER COMPONENTS <<<
+          router.refresh(); 
           router.replace("/");
         } else {
           toast.error("Email atau password salah.");
@@ -54,6 +57,8 @@ const AuthForm = ({ type }: Props) => {
             toast.success("Akun berhasil dibuat! Silakan cek email Anda untuk konfirmasi.");
           } else {
             toast.success("Anda berhasil mendaftar.");
+            // >>> TAMBAHKAN INI JUGA DI SINI <<<
+            router.refresh(); 
             router.replace("/");
           }
         } else {

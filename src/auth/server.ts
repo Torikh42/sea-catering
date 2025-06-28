@@ -1,3 +1,4 @@
+"use server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
@@ -5,8 +6,8 @@ export async function createClient() {
   const cookieStore = await cookies();
 
   const client = createServerClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
@@ -27,14 +28,30 @@ export async function createClient() {
 }
 
 export async function getUser() {
-    const {auth} = await createClient();
+  const { auth } = await createClient();
+  const {
+    data: { user },
+    error,
+  } = await auth.getUser();
 
-    const userObject = await auth.getUser()
+  if (error || !user) {
+    console.error(error);
+    return null;
+  }
 
-    if (userObject.error) {
-        console.error(userObject.error);
-        return null;
-    }
-    return userObject.data.user;
+  const userRole = user.user_metadata?.role || "user";
 
+  const userName = user.user_metadata?.fullName;
+
+  console.log("[Auth Server] User metadata:", user.user_metadata);
+
+  console.log("[Auth Server] Final user role from metadata:", userRole);
+  console.log("[Auth Server] User email:", user.email);
+
+  return {
+    id: user.id,
+    email: user.email,
+    name: userName,
+    role: userRole,
+  };
 }

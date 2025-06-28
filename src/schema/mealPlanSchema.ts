@@ -1,5 +1,4 @@
-// src/schema/mealPlanSchema.ts
-import { z } from 'zod'
+import { z } from "zod";
 
 export const mealPlanSchema = z.object({
   id: z.string().uuid(),
@@ -7,6 +6,6 @@ export const mealPlanSchema = z.object({
   price: z.number(),
   description: z.string(),
   imageUrl: z.string().url().nullable().optional(),
-})
+});
 
-export type MealPlan = z.infer<typeof mealPlanSchema>
+export type MealPlan = z.infer<typeof mealPlanSchema>;

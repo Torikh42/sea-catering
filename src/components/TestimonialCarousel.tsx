@@ -10,28 +10,25 @@ import {
 } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
-import { getTestimonials, TestimonialData } from "@/action/testimonial"; // Import getTestimonials dan tipenya
+import { getTestimonials, TestimonialData } from "@/action/testimonial"; 
 import { toast } from "sonner";
 import Autoplay from "embla-carousel-autoplay";
 
 export default function TestimonialCarousel() {
-  // Inisialisasi state testimonials dengan array kosong, bukan lagi dummy data
   const [testimonials, setTestimonials] = useState<TestimonialData[]>([]);
-  const [isLoading, setIsLoading] = useState(true); // State untuk menunjukkan loading
+  const [isLoading, setIsLoading] = useState(true); 
 
   useEffect(() => {
-    // Fungsi untuk mengambil testimoni dari server
     const fetchTestimonials = async () => {
-      setIsLoading(true); // Set loading ke true saat mulai fetch
+      setIsLoading(true); 
       const result = await getTestimonials();
       if (result.success && result.data) {
         setTestimonials(result.data);
       } else {
         toast.error(result.message || "Gagal memuat testimonial.");
-        // Tidak lagi fallback ke dummy data, biarkan kosong jika gagal
         setTestimonials([]);
       }
-      setIsLoading(false); // Set loading ke false setelah fetch selesai
+      setIsLoading(false); 
     };
 
     fetchTestimonials();
@@ -54,7 +51,7 @@ export default function TestimonialCarousel() {
   }
 
   return (
-    // Tambahkan padding horizontal (px-4) untuk memberi ruang pada tombol di layar kecil
+   
     <div className="w-full max-w-4xl mx-auto py-12 px-4">
       <h2 className="text-center text-3xl font-bold text-gray-800 mb-8">
         Apa Kata Pelanggan Kami?
@@ -62,13 +59,13 @@ export default function TestimonialCarousel() {
       <Carousel
         opts={{
           align: "start",
-          loop: true, // Membuat carousel berputar
+          loop: true, 
         }}
         plugins={[
           Autoplay({
-            delay: 4000, // Durasi per slide (ms)
-            stopOnInteraction: false, // Terus berputar meskipun ada interaksi
-            stopOnMouseEnter: true, // Berhenti saat mouse di atas
+            delay: 4000, 
+            stopOnInteraction: false, 
+            stopOnMouseEnter: true,
           }),
         ]}
         className="w-full"
@@ -104,7 +101,7 @@ export default function TestimonialCarousel() {
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
                       {new Date(testimonial.createdAt).toLocaleDateString(
-                        "id-ID", // Format tanggal ke bahasa Indonesia
+                        "id-ID", 
                         {
                           year: "numeric",
                           month: "long",
@@ -118,8 +115,8 @@ export default function TestimonialCarousel() {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="left-2 sm:left-4" /> {/* Sesuaikan posisi jika perlu */}
-        <CarouselNext className="right-2 sm:right-4" /> {/* Sesuaikan posisi jika perlu */}
+        <CarouselPrevious className="left-2 sm:left-4" /> 
+        <CarouselNext className="right-2 sm:right-4" /> 
       </Carousel>
     </div>
   );

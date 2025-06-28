@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import "../styles/globals.css";
 import Header from "@/components/Header";
-import { getUser } from "@/auth/server"; // This is likely an async function
+import { getUser } from "@/auth/server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,21 +20,23 @@ export const metadata: Metadata = {
   title: "SEA",
 };
 
-// Make the RootLayout function async
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Await the getUser() call to get the resolved user object
+  // Get user (now with role processed in auth/server.ts)
   const user = await getUser();
+  
+  console.log("RootLayout - User:", user);
+  console.log("RootLayout - User Role:", user?.role);
   
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Header user={user} /> {/* Now 'user' will be the resolved User object or null */}
+        <Header user={user} />
         {children}
         <Toaster />
       </body>

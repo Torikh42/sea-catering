@@ -12,7 +12,8 @@ import {
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import Image from "next/image";
-import { Eye, Clock, Users, Star, ChefHat, Utensils } from "lucide-react";
+import { Eye, Clock, Users, Star, ChefHat, Utensils, X } from "lucide-react";
+import Link from "next/link";
 
 type SimplifiedMealPlan = {
   name: string;
@@ -28,10 +29,8 @@ export default function MealPlanCard({ plan }: { plan: SimplifiedMealPlan }) {
   return (
     <>
       <Card className="group relative transform overflow-hidden rounded-2xl border-0 bg-white shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl">
-        {/* Gradient overlay */}
         <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-        {/* Popular badge */}
         <div className="absolute top-4 right-4 z-20 flex items-center gap-1 rounded-full bg-gradient-to-r from-yellow-400 to-orange-400 px-3 py-1 text-xs font-bold text-white shadow-lg">
           <Star className="h-3 w-3 fill-current" />
           Popular
@@ -55,7 +54,6 @@ export default function MealPlanCard({ plan }: { plan: SimplifiedMealPlan }) {
               </div>
             )}
 
-            {/* Floating price tag */}
             <div className="absolute bottom-4 left-4 z-20 rounded-xl bg-white/95 px-3 py-2 shadow-lg backdrop-blur-sm">
               <div className="text-xs font-medium text-gray-500">
                 Mulai dari
@@ -77,7 +75,6 @@ export default function MealPlanCard({ plan }: { plan: SimplifiedMealPlan }) {
           </CardDescription>
         </CardHeader>
 
-        {/* Quick info */}
         <div className="flex items-center gap-4 px-6 pb-4 text-xs text-gray-500">
           <div className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
@@ -106,10 +103,17 @@ export default function MealPlanCard({ plan }: { plan: SimplifiedMealPlan }) {
       </Card>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-white to-green-50 p-0">
+        <DialogContent className="max-w-2xl overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-white to-green-50 p-0 max-h-[95vh] overflow-y-auto m-2 sm:m-0 sm:max-h-none sm:overflow-y-visible">
+          <button
+            onClick={() => setOpen(false)}
+            className="absolute top-4 right-4 z-50 rounded-full bg-black/20 p-2 text-white backdrop-blur-sm transition-all hover:bg-black/30 sm:bg-white/90 sm:text-gray-600 sm:hover:bg-white sm:shadow-lg"
+          >
+            <X className="h-5 w-5" />
+          </button>
+
           <div className="relative">
             {plan.image && (
-              <div className="relative h-64 w-full overflow-hidden">
+              <div className="relative h-48 sm:h-64 w-full overflow-hidden">
                 <Image
                   src={plan.image}
                   alt={plan.name}
@@ -118,82 +122,82 @@ export default function MealPlanCard({ plan }: { plan: SimplifiedMealPlan }) {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
 
-                {/* Floating title */}
-                <div className="absolute bottom-6 left-6 text-white">
-                  <h2 className="mb-2 text-3xl font-bold">{plan.name}</h2>
+                <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 text-white">
+                  <h2 className="mb-2 text-xl sm:text-3xl font-bold">{plan.name}</h2>
                   <div className="flex items-center gap-2 text-green-200">
-                    <ChefHat className="h-5 w-5" />
-                    <span className="text-lg">Menu Premium</span>
+                    <ChefHat className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <span className="text-sm sm:text-lg">Menu Premium</span>
                   </div>
                 </div>
               </div>
             )}
 
-            <div className="p-8">
-              <DialogHeader className="mb-6 space-y-4">
+            <div className="p-4 sm:p-8">
+              <DialogHeader className="mb-4 sm:mb-6 space-y-4">
+                <DialogTitle className="sr-only">{plan.name}</DialogTitle>
                 {!plan.image && (
-                  <DialogTitle className="flex items-center gap-3 text-3xl font-bold text-gray-800">
-                    <ChefHat className="h-8 w-8 text-green-600" />
+                  <div className="flex items-center gap-3 text-2xl sm:text-3xl font-bold text-gray-800">
+                    <ChefHat className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
                     {plan.name}
-                  </DialogTitle>
+                  </div>
                 )}
               </DialogHeader>
 
-              <div className="space-y-6">
-                {/* Price section */}
-                <div className="rounded-2xl bg-gradient-to-r from-green-500 to-blue-500 p-6 text-white">
+              <div className="space-y-4 sm:space-y-6">
+                <div className="rounded-xl sm:rounded-2xl bg-gradient-to-r from-green-500 to-blue-500 p-4 sm:p-6 text-white">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-green-100">
+                      <p className="text-xs sm:text-sm font-medium text-green-100">
                         Harga per porsi
                       </p>
-                      <p className="text-3xl font-bold">
+                      <p className="text-2xl sm:text-3xl font-bold">
                         Rp{plan.price.toLocaleString("id-ID")}
                       </p>
                     </div>
-                    <div className="rounded-full bg-white/20 p-3 backdrop-blur-sm">
-                      <Star className="h-8 w-8 fill-current text-yellow-300" />
+                    <div className="rounded-full bg-white/20 p-2 sm:p-3 backdrop-blur-sm">
+                      <Star className="h-6 w-6 sm:h-8 sm:w-8 fill-current text-yellow-300" />
                     </div>
                   </div>
                 </div>
 
-                {/* Description */}
-                <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-                  <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-800">
-                    <Utensils className="h-5 w-5 text-green-600" />
+                <div className="rounded-xl sm:rounded-2xl border border-gray-100 bg-white p-4 sm:p-6 shadow-sm">
+                  <h3 className="mb-3 flex items-center gap-2 text-base sm:text-lg font-semibold text-gray-800">
+                    <Utensils className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                     Deskripsi Menu
                   </h3>
-                  <p className="leading-relaxed text-gray-600">
+                  <p className="text-sm sm:text-base leading-relaxed text-gray-600">
                     {plan.description}
                   </p>
                 </div>
 
-                {/* Features */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-center">
-                    <Clock className="mx-auto mb-2 h-6 w-6 text-yellow-600" />
-                    <p className="text-sm font-medium text-gray-700">
+                <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                  <div className="rounded-lg sm:rounded-xl border border-yellow-200 bg-yellow-50 p-3 sm:p-4 text-center">
+                    <Clock className="mx-auto mb-1 sm:mb-2 h-5 w-5 sm:h-6 sm:w-6 text-yellow-600" />
+                    <p className="text-xs sm:text-sm font-medium text-gray-700">
                       Cepat Saji
                     </p>
                     <p className="text-xs text-gray-500">30 menit</p>
                   </div>
-                  <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-center">
-                    <Users className="mx-auto mb-2 h-6 w-6 text-blue-600" />
-                    <p className="text-sm font-medium text-gray-700">Porsi</p>
+                  <div className="rounded-lg sm:rounded-xl border border-blue-200 bg-blue-50 p-3 sm:p-4 text-center">
+                    <Users className="mx-auto mb-1 sm:mb-2 h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+                    <p className="text-xs sm:text-sm font-medium text-gray-700">Porsi</p>
                     <p className="text-xs text-gray-500">1-2 orang</p>
                   </div>
-                  <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-center">
-                    <ChefHat className="mx-auto mb-2 h-6 w-6 text-green-600" />
-                    <p className="text-sm font-medium text-gray-700">Fresh</p>
+                  <div className="rounded-lg sm:rounded-xl border border-green-200 bg-green-50 p-3 sm:p-4 text-center">
+                    <ChefHat className="mx-auto mb-1 sm:mb-2 h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
+                    <p className="text-xs sm:text-sm font-medium text-gray-700">Fresh</p>
                     <p className="text-xs text-gray-500">Bahan segar</p>
                   </div>
                 </div>
 
-                {/* CTA Button */}
-                <Button className="h-14 w-full transform rounded-xl bg-gradient-to-r from-green-600 to-blue-600 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:from-green-700 hover:to-blue-700 hover:shadow-xl">
-                  <ChefHat className="mr-2 h-5 w-5" />
-                  Pesan Sekarang
-                </Button>
+                <div className="pb-2 sm:pb-0">
+                  <Link href="/subscription">
+                    <Button className="h-12 sm:h-14 w-full transform rounded-xl bg-gradient-to-r from-green-600 to-blue-600 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:from-green-700 hover:to-blue-700 hover:shadow-xl">
+                      <ChefHat className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                      Pesan Sekarang
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

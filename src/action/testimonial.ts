@@ -1,6 +1,5 @@
 "use server";
-import { prisma } from "../../prisma/prisma"; // Adjust path if necessary
-
+import prisma from "../../prisma/prisma"; // Adjust path if necessary
 
 interface CreateTestimonialInput {
   name: string;
@@ -10,11 +9,10 @@ interface CreateTestimonialInput {
 
 export async function createTestimonial(data: CreateTestimonialInput) {
   try {
-    // Server-side validation
-    if (!data.name || data.name.trim() === '') {
+    if (!data.name || data.name.trim() === "") {
       return { success: false, message: "Nama pelanggan diperlukan." };
     }
-    if (!data.message || data.message.trim() === '') {
+    if (!data.message || data.message.trim() === "") {
       return { success: false, message: "Pesan ulasan diperlukan." };
     }
     if (data.rating < 1 || data.rating > 5) {
@@ -30,14 +28,20 @@ export async function createTestimonial(data: CreateTestimonialInput) {
     });
 
     console.log("New testimonial created:", newTestimonial);
-    return { success: true, message: "Terima kasih! Testimonial Anda berhasil dikirim.", testimonial: newTestimonial };
+    return {
+      success: true,
+      message: "Terima kasih! Testimonial Anda berhasil dikirim.",
+      testimonial: newTestimonial,
+    };
   } catch (error) {
     console.error("Error creating testimonial:", error);
-    return { success: false, message: "Gagal mengirim testimonial. Silakan coba lagi." };
+    return {
+      success: false,
+      message: "Gagal mengirim testimonial. Silakan coba lagi.",
+    };
   }
 }
 
-// Interface untuk testimonial yang diambil dari DB (opsional, untuk type safety)
 export interface TestimonialData {
   id: string;
   name: string;
@@ -46,11 +50,15 @@ export interface TestimonialData {
   createdAt: Date;
 }
 
-export async function getTestimonials(): Promise<{ success: boolean, data?: TestimonialData[], message?: string }> {
+export async function getTestimonials(): Promise<{
+  success: boolean;
+  data?: TestimonialData[];
+  message?: string;
+}> {
   try {
     const testimonials = await prisma.testimonial.findMany({
       orderBy: { createdAt: "desc" },
-      take: 10, // Mengambil 10 testimoni terbaru
+      take: 10,
     });
     return { success: true, data: testimonials };
   } catch (error) {
