@@ -33,10 +33,10 @@ export const signUpAction = async (
       email,
       password,
       options: {
-        emailRedirectTo: emailRedirectTo, // >>> INI PERUBAHAN PENTINGNYA <<<
+        emailRedirectTo: emailRedirectTo,
         data: {
-          role: "user", // Set role default untuk user baru
-          fullName: fullName, // Juga simpan fullName ke metadata
+          role: "user",
+          fullName: fullName,
         },
       },
     });
@@ -54,16 +54,12 @@ export const signUpAction = async (
         requiresEmailConfirmation: false,
       };
     }
-    // Anda sudah menyimpan di database Prisma, ini tetap benar.
-    // Tapi Supabase Auth dan Prisma adalah dua entitas yang berbeda.
-    // Otorisasi di middleware/Server Component bergantung pada Supabase Auth.
+
     await prisma.user.create({
       data: {
         id: userId,
         email,
         fullName,
-        // Role akan diambil dari Supabase user metadata jika tidak diset di sini.
-        // Tapi kita biarkan default 'user' di schema.
       },
     });
 

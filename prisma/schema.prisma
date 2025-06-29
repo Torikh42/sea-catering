@@ -26,13 +26,14 @@ enum SubscriptionStatus {
 }
 
 model User {
-  id            String         @id @default(uuid())
+  id            String          @id @default(uuid())
   fullName      String
-  email         String         @unique
-  role          Role           @default(user)
-  createdAt     DateTime       @default(now())
+  email         String          @unique
+  role          Role            @default(user)
+  createdAt     DateTime        @default(now())
   subscriptions Subscription[]
-  password      String?      
+  password      String?
+  testimonials  Testimonial[] 
 }
 
 model Subscription {
@@ -104,9 +105,12 @@ model SubscriptionDeliveryDay {
 }
 
 model Testimonial {
-  id        String   @id @default(uuid())
-  name      String
-  message   String
-  rating    Int
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  name        String
+  message     String
+  rating      Int
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String   
 }

@@ -1,16 +1,33 @@
 "use server";
-import prisma from "../../prisma/prisma"; // Adjust path if necessary
+import prisma from "../../prisma/prisma";
+import { getUser } from "@/auth/server";
 
 interface CreateTestimonialInput {
-  name: string;
   message: string;
+  rating: number;
+}
+
+interface CreateTestimonialInput {
   rating: number;
 }
 
 export async function createTestimonial(data: CreateTestimonialInput) {
   try {
-    if (!data.name || data.name.trim() === "") {
-      return { success: false, message: "Nama pelanggan diperlukan." };
+    const user = await getUser();
+    if (!user) {
+      return {
+        success: false,
+        message: "Anda harus login untuk mengirim testimonial.",
+      };
+    }
+
+    const userName = user.name;
+
+    if (!userName || userName.trim() === "") {
+      return {
+        success: false,
+        message: "Nama Anda tidak ditemukan. Mohon perbarui profil Anda.",
+      };
     }
     if (!data.message || data.message.trim() === "") {
       return { success: false, message: "Pesan ulasan diperlukan." };
@@ -21,9 +38,10 @@ export async function createTestimonial(data: CreateTestimonialInput) {
 
     const newTestimonial = await prisma.testimonial.create({
       data: {
-        name: data.name.trim(),
+        name: userName,
         message: data.message.trim(),
         rating: data.rating,
+        userId: user.id,
       },
     });
 
@@ -48,6 +66,7 @@ export interface TestimonialData {
   message: string;
   rating: number;
   createdAt: Date;
+  userId: string;
 }
 
 export async function getTestimonials(): Promise<{
