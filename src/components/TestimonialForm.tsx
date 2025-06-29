@@ -1,8 +1,8 @@
+// components/TestimonialForm.tsx
 "use client";
 
 import React, { useState } from "react";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+import { Label } from "./ui/label"; // Anda bisa hapus ini jika tidak digunakan lagi
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { createTestimonial } from "@/action/testimonial";
@@ -16,8 +16,13 @@ import {
 } from "./ui/card";
 import { Loader2, Star, MessageCircle, Sparkles, ChefHat } from "lucide-react";
 
+// Dapatkan user dari props jika Anda meneruskannya dari Server Component
+// atau gunakan hook untuk mendapatkannya di client jika perlu.
+// Namun, karena `createTestimonial` adalah Server Action, Anda tidak perlu
+// meneruskan user dari sini.
+// Kita akan menghapus input nama dari form.
+
 export default function TestimonialForm() {
-  const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [rating, setRating] = useState<number>(5);
   const [loading, setLoading] = useState(false);
@@ -27,14 +32,15 @@ export default function TestimonialForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      const result = await createTestimonial({ name, message, rating });
+      // Panggil server action tanpa nama, karena nama akan diambil dari sesi
+      const result = await createTestimonial({ message, rating });
 
       if (result.success) {
-        setName("");
         setMessage("");
         setRating(5);
         toast.success("Testimonial berhasil dikirim! 🎉");
       } else {
+        // Tampilkan pesan error jika user belum login, dll.
         toast.error(result.message || "Gagal mengirim testimonial.");
       }
     } catch (error) {
@@ -77,12 +83,10 @@ export default function TestimonialForm() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-yellow-50 flex items-center justify-center p-4">
       <div className="relative">
-        {/* Decorative elements */}
         <div className="absolute -top-4 -left-4 w-24 h-24 bg-gradient-to-r from-green-400 to-blue-400 rounded-full opacity-20 blur-xl animate-pulse"></div>
         <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-gradient-to-r from-yellow-400 to-green-400 rounded-full opacity-20 blur-xl animate-pulse delay-1000"></div>
         
         <Card className="max-w-lg mx-auto shadow-2xl border-0 bg-white/80 backdrop-blur-lg relative overflow-hidden">
-          {/* Header with gradient background */}
           <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-r from-green-600 via-blue-600 to-green-700"></div>
           
           <CardHeader className="relative z-10 text-center pt-8 pb-6">
@@ -99,23 +103,6 @@ export default function TestimonialForm() {
           
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-6 px-8 pb-6">
-              {/* Name Input */}
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-green-500" />
-                  Nama Anda
-                </Label>
-                <Input
-                  required
-                  id="name"
-                  placeholder="Siapa nama Anda?"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  disabled={loading}
-                  className="h-12 border-2 border-gray-200 focus:border-green-400 transition-colors duration-200 rounded-xl bg-white/50"
-                />
-              </div>
-
               {/* Message Input */}
               <div className="space-y-2">
                 <Label htmlFor="message" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
@@ -170,7 +157,6 @@ export default function TestimonialForm() {
             </CardFooter>
           </form>
 
-          {/* Bottom decorative element */}
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-green-400 via-yellow-400 to-blue-400"></div>
         </Card>
       </div>

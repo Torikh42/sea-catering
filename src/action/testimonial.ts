@@ -1,16 +1,45 @@
+// action/testimonial.ts
 "use server";
 import prisma from "../../prisma/prisma"; // Adjust path if necessary
+import { getUser } from "@/auth/server"; // Import getUser
+
+// Hapus 'name' dari interface karena diambil dari user yang login
+interface CreateTestimonialInput {
+  message: string;
+  rating: number;
+}
 
 interface CreateTestimonialInput {
-  name: string;
+  // `name` sudah tidak diperlukan dari client, jadi hapus saja.
+  // message: string;
+  // rating: number;
   message: string;
   rating: number;
 }
 
 export async function createTestimonial(data: CreateTestimonialInput) {
   try {
-    if (!data.name || data.name.trim() === "") {
-      return { success: false, message: "Nama pelanggan diperlukan." };
+    // Dapatkan pengguna yang sedang login dari server
+    const user = await getUser();
+
+    // Pastikan user sudah login
+    if (!user) {
+      return {
+        success: false,
+        message: "Anda harus login untuk mengirim testimonial.",
+      };
+    }
+
+    // Ambil nama dari objek user yang dikembalikan oleh getUser()
+    const userName = user.name;
+
+    // Validasi input
+    if (!userName || userName.trim() === "") {
+      // Ini adalah fallback jika nama di metadata user kosong
+      return {
+        success: false,
+        message: "Nama Anda tidak ditemukan. Mohon perbarui profil Anda.",
+      };
     }
     if (!data.message || data.message.trim() === "") {
       return { success: false, message: "Pesan ulasan diperlukan." };
@@ -19,11 +48,13 @@ export async function createTestimonial(data: CreateTestimonialInput) {
       return { success: false, message: "Rating harus antara 1 dan 5." };
     }
 
+    // Buat testimonial baru di database
     const newTestimonial = await prisma.testimonial.create({
       data: {
-        name: data.name.trim(),
+        name: userName, // Gunakan nama dari user yang sudah terautentikasi
         message: data.message.trim(),
         rating: data.rating,
+        userId: user.id, // Hubungkan testimonial dengan user ID
       },
     });
 
@@ -48,6 +79,7 @@ export interface TestimonialData {
   message: string;
   rating: number;
   createdAt: Date;
+  userId: string;
 }
 
 export async function getTestimonials(): Promise<{

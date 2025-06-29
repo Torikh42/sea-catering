@@ -46,7 +46,7 @@ export async function middleware(request: NextRequest) {
   const isAdminRoute = pathname.startsWith("/dashboard-admin");
   const isPublicRoute =
     pathname === "/" ||
-    pathname === "/subscrintion" ||
+    pathname === "/subscription" ||
     pathname.startsWith("/api");
 
   let userRole: string = "user";
