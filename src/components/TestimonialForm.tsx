@@ -1,8 +1,7 @@
-// components/TestimonialForm.tsx
 "use client";
 
 import React, { useState } from "react";
-import { Label } from "./ui/label"; // Anda bisa hapus ini jika tidak digunakan lagi
+import { Label } from "./ui/label"; 
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { createTestimonial } from "@/action/testimonial";
@@ -16,12 +15,6 @@ import {
 } from "./ui/card";
 import { Loader2, Star, MessageCircle, Sparkles, ChefHat } from "lucide-react";
 
-// Dapatkan user dari props jika Anda meneruskannya dari Server Component
-// atau gunakan hook untuk mendapatkannya di client jika perlu.
-// Namun, karena `createTestimonial` adalah Server Action, Anda tidak perlu
-// meneruskan user dari sini.
-// Kita akan menghapus input nama dari form.
-
 export default function TestimonialForm() {
   const [message, setMessage] = useState("");
   const [rating, setRating] = useState<number>(5);
@@ -32,7 +25,7 @@ export default function TestimonialForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      // Panggil server action tanpa nama, karena nama akan diambil dari sesi
+
       const result = await createTestimonial({ message, rating });
 
       if (result.success) {
@@ -40,7 +33,6 @@ export default function TestimonialForm() {
         setRating(5);
         toast.success("Testimonial berhasil dikirim! 🎉");
       } else {
-        // Tampilkan pesan error jika user belum login, dll.
         toast.error(result.message || "Gagal mengirim testimonial.");
       }
     } catch (error) {
