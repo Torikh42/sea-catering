@@ -53,7 +53,7 @@ export default function Header({ user }: { user?: User }) {
           href="/"
         >
           <Image
-            src="https://res.cloudinary.com/dsw1iot8d/image/upload/v1751186571/image-sea_krhhpf.png" 
+            src="https://res.cloudinary.com/dsw1iot8d/image/upload/v1751186571/image-sea_krhhpf.png"
             height={40}
             width={40}
             alt="logo"
@@ -175,7 +175,11 @@ export default function Header({ user }: { user?: User }) {
                     <Button
                       asChild
                       variant={isActive(dashboardHref) ? "default" : "ghost"}
-                      className="w-full justify-start"
+                      className={`w-full justify-start transition-all duration-200 ${
+                        isActive(dashboardHref)
+                          ? "bg-blue-500 text-white"
+                          : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                      }`}
                       onClick={() => setMobileOpen(false)}
                     >
                       <Link href={dashboardHref}>Dashboard</Link>
