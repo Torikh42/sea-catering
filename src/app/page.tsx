@@ -59,7 +59,7 @@ export default function Homepage() {
         </div>
         <div className="relative z-0 mt-8 aspect-square w-full max-w-sm overflow-hidden rounded-full shadow-2xl md:mt-0 md:max-w-md lg:max-w-lg">
           <Image
-            src="https://res.cloudinary.com/dsw1iot8d/image/upload/v1751033917/Screenshot_2025-06-24_095226_ryv3ih.png"
+            src="https://res.cloudinary.com/dsw1iot8d/image/upload/v1751186571/image-sea_krhhpf.png"
             alt="Delicious healthy meal from SEA Catering"
             layout="fill"
             objectFit="cover"

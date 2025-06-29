@@ -53,7 +53,7 @@ export default function Header({ user }: { user?: User }) {
           href="/"
         >
           <Image
-            src="https://res.cloudinary.com/dsw1iot8d/image/upload/v1751033917/Screenshot_2025-06-24_095226_ryv3ih.png"
+            src="https://res.cloudinary.com/dsw1iot8d/image/upload/v1751186571/image-sea_krhhpf.png" 
             height={40}
             width={40}
             alt="logo"
