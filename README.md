@@ -141,3 +141,24 @@ WHERE id = '{your account id}';
 ```
 
 **Remember to replace `{your account id}` with the actual UUID of the user account you want to promote.** You can find the user's ID in the `Authentication` tab of your Supabase Dashboard.
+
+# n8n Integration (Automatic Email Notifications)
+This project uses n8n to send a confirmation email when a user successfully subscribes.
+
+## Workflow
+- Trigger: The src/action/subscription.ts file in Next.js sends a fetch request (POST) to an n8n Webhook URL.
+- Action: n8n receives data (email, name, package details) via the Webhook node.
+- Result: The data is forwarded to the Gmail node (or another email node), which then sends a confirmation email to the user.
+## Settings
+- Create Workflow: In n8n, create a Webhook -> Gmail workflow.
+- Get URL: Copy the Production URL from your Webhook node.
+- Set Environment Variable: Add the URL to your .env/.env.local file.
+
+## n8n Webhook for subscription confirmation
+```bash
+N8N_SUBSCRIPTION_WEBHOOK_URL="[YOUR_N8N_PRODUCTION_WEBHOOK_URL]"
+```
+## IMPORTANT FOR DEPLOYMENT (VERCEL):
+
+- Your n8n instance must have a public URL (cannot be localhost).
+- Add N8N_SUBSCRIPTION_WEBHOOK_URL as an Environment Variable in your Vercel dashboard.
