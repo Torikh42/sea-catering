@@ -152,6 +152,37 @@ export async function createSubscription(data: CreateSubscriptionInput) {
       "New serializable subscription created:",
       serializableSubscription.id,
     );
+
+    // Integrasi n8n
+    const webhookUrl = process.env.N8N_SUBSCRIPTION_WEBHOOK_URL;
+    const userEmail = session.user.email;
+
+    if (webhookUrl && userEmail) {
+      try {
+        const payload = {
+          email: userEmail,
+          fullName: newSubscription.fullName,
+          planName: newSubscription.mealPlan.name,
+          totalPrice: newSubscription.totalPrice.toNumber(),
+          createdAt: newSubscription.createdAt.toISOString(),
+        };
+
+        await fetch(webhookUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+        console.log("Successfully triggered n8n subscription webhook for user:", userEmail);
+      } catch (error) {
+        console.error("Failed to trigger n8n subscription webhook:", error);
+      }
+    } else {
+      if (!webhookUrl) console.warn("N8N_SUBSCRIPTION_WEBHOOK_URL is not set. Skipping webhook call.");
+      if (!userEmail) console.warn("User email is not available in session. Skipping webhook call.");
+    }
+
     return {
       success: true,
       message: "Langganan berhasil dibuat!",
